@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, Droplets, Sparkles, Sliders, ShieldAlert, Palette } from 'lucide-react';
+import { Layers, Droplets, Sparkles, Sliders, ShieldAlert, Palette, MoveHorizontal } from 'lucide-react';
 import { DomeSection, FlutingStyle } from '../types';
 import opticalProfilesData from '../data/opticalProfiles.json';
 
@@ -81,26 +81,35 @@ export const DomeGlassEditor: React.FC<DomeGlassEditorProps> = ({ domes, onUpdat
 
       {/* Visual Section Partition Selector */}
       <div className="space-y-1.5">
-        <span className="text-xs text-zinc-400 font-medium">Dome Partition Sections:</span>
-        <div className="flex h-10 w-full rounded-lg overflow-hidden border border-zinc-700 bg-zinc-950 p-0.5 gap-1">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-xs text-zinc-400 font-medium">Dome Partition Sections:</span>
+          {activeDome && (
+            <span className="text-[11px] text-cyan-400 font-mono">
+              {activeDome.name} ({Math.round(activeDome.startX * 100)}% – {Math.round(activeDome.endX * 100)}%)
+            </span>
+          )}
+        </div>
+        <div className="relative h-10 w-full rounded-lg overflow-hidden border border-zinc-700 bg-zinc-950 p-0.5">
           {domes.map((dome) => {
-            const isSelected = dome.id === activeDome.id;
-            const widthPct = Math.max(15, (dome.endX - dome.startX) * 100);
+            const isSelected = activeDome && dome.id === activeDome.id;
+            const leftPct = dome.startX * 100;
+            const widthPct = Math.max(3, (dome.endX - dome.startX) * 100);
             return (
               <button
                 key={dome.id}
                 id={`dome-selector-${dome.id}`}
                 onClick={() => setSelectedDomeId(dome.id)}
                 style={{
+                  left: `${leftPct}%`,
                   width: `${widthPct}%`,
                   backgroundColor: dome.color,
                 }}
-                className={`h-full rounded relative transition-all flex items-center justify-center text-[10px] font-bold text-white shadow-inner ${
+                className={`absolute top-0.5 bottom-0.5 rounded transition-all flex items-center justify-center text-[10px] font-bold text-white shadow-inner ${
                   isSelected
                     ? 'ring-2 ring-white scale-[0.98] z-10'
                     : 'opacity-70 hover:opacity-90'
                 }`}
-                title={`${dome.name} (${Math.round((dome.endX - dome.startX) * 100)}% span)`}
+                title={`${dome.name} (${Math.round(dome.startX * 100)}% – ${Math.round(dome.endX * 100)}%)`}
               >
                 <span className="bg-black/60 px-1 py-0.5 rounded backdrop-blur-xs truncate max-w-full">
                   {dome.name}
@@ -110,6 +119,63 @@ export const DomeGlassEditor: React.FC<DomeGlassEditorProps> = ({ domes, onUpdat
           })}
         </div>
       </div>
+
+      {/* Dome Position & Boundary Alignment */}
+      {activeDome && (
+        <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-lg p-3 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-semibold text-zinc-200 flex items-center gap-1.5">
+              <MoveHorizontal className="w-3.5 h-3.5 text-cyan-400" />
+              Dome Position & Boundary Alignment
+            </span>
+            <span className="font-mono text-[11px] text-cyan-400">
+              {Math.round(activeDome.startX * 100)}% to {Math.round(activeDome.endX * 100)}% (Span: {Math.round((activeDome.endX - activeDome.startX) * 100)}%)
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-[11px]">
+            <div>
+              <div className="flex justify-between text-zinc-400 mb-1">
+                <span>Start Position:</span>
+                <span className="font-mono text-zinc-200">{Math.round(activeDome.startX * 100)}%</span>
+              </div>
+              <input
+                id="dome-start-x-range"
+                type="range"
+                min={0}
+                max={0.95}
+                step={0.01}
+                value={activeDome.startX}
+                onChange={(e) => {
+                  const newStart = parseFloat(e.target.value);
+                  const safeEnd = Math.max(newStart + 0.04, activeDome.endX);
+                  handleUpdateActiveDome({ startX: newStart, endX: safeEnd });
+                }}
+                className="w-full h-1.5 bg-zinc-800 rounded appearance-none cursor-pointer accent-cyan-400"
+              />
+            </div>
+            <div>
+              <div className="flex justify-between text-zinc-400 mb-1">
+                <span>End Position:</span>
+                <span className="font-mono text-zinc-200">{Math.round(activeDome.endX * 100)}%</span>
+              </div>
+              <input
+                id="dome-end-x-range"
+                type="range"
+                min={0.05}
+                max={1.0}
+                step={0.01}
+                value={activeDome.endX}
+                onChange={(e) => {
+                  const newEnd = parseFloat(e.target.value);
+                  const safeStart = Math.min(newEnd - 0.04, activeDome.startX);
+                  handleUpdateActiveDome({ startX: safeStart, endX: newEnd });
+                }}
+                className="w-full h-1.5 bg-zinc-800 rounded appearance-none cursor-pointer accent-cyan-400"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Active Dome Optical Controls */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

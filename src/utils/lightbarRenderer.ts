@@ -870,12 +870,13 @@ export class LightbarRenderer {
         ctx.fill();
       });
 
-      // Left and Right elevated chrome beacon turret bases
-      const leftTurretX = barX + barW * 0.15;
-      const rightTurretX = barX + barW * 0.85;
-      const turretW = barW * 0.28;
+      // Elevated chrome beacon turret bases positioned dynamically under each dome
+      config.domes.forEach((dome) => {
+        const domeX = barX + dome.startX * barW;
+        const domeW = (dome.endX - dome.startX) * barW;
+        const tx = domeX + domeW / 2;
+        const turretW = Math.max(domeW * 1.06, 50);
 
-      [leftTurretX, rightTurretX].forEach((tx) => {
         const tGrad = ctx.createLinearGradient(tx - turretW / 2, 0, tx + turretW / 2, 0);
         tGrad.addColorStop(0, '#4b5563');
         tGrad.addColorStop(0.3, '#ffffff');
@@ -1040,7 +1041,9 @@ export class LightbarRenderer {
 
       // Center speaker grille if configured
       if (config.structure.speakerCenter !== 'none') {
-        const centerDome = config.domes.find((d) => d.id.includes('speaker') || d.id.includes('center'));
+        const centerDome = config.domes.find(
+          (d) => d.id.includes('speaker') || d.id.includes('center') || d.id.includes('mid') || (d.startX <= 0.45 && d.endX >= 0.55)
+        );
         if (centerDome) {
           const spkX = barX + centerDome.startX * barW;
           const spkW = (centerDome.endX - centerDome.startX) * barW;
@@ -1405,13 +1408,13 @@ export class LightbarRenderer {
 
       if (trappedGlow > 0.02) {
         // A. Volumetric Chamber Luminescence (whole dome acrylic lights up)
-        const scatterGrad = ctx.createLinearGradient(0, barY, 0, barY + barH);
+        const scatterGrad = ctx.createLinearGradient(0, domeY, 0, domeY + barH);
         const scatterAlpha = Math.min(0.95, trappedGlow * 0.5);
         scatterGrad.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${scatterAlpha * 0.75})`);
         scatterGrad.addColorStop(0.4, `rgba(${Math.min(255, rgb.r + 90)}, ${Math.min(255, rgb.g + 90)}, ${Math.min(255, rgb.b + 90)}, ${scatterAlpha * 0.95})`);
         scatterGrad.addColorStop(1, `rgba(${Math.floor(rgb.r * 0.8)}, ${Math.floor(rgb.g * 0.8)}, ${Math.floor(rgb.b * 0.8)}, ${scatterAlpha * 0.85})`);
         ctx.fillStyle = scatterGrad;
-        ctx.fillRect(domeX, barY, domeW, barH);
+        ctx.fillRect(domeX, domeY, domeW, barH);
 
         // B. Localized Diffusion Hotspots in the Plastic Shell
         domeFlares.forEach((f) => {
@@ -1429,26 +1432,90 @@ export class LightbarRenderer {
           ctx.globalCompositeOperation = 'screen';
           ctx.fillStyle = hotspotGrad;
           ctx.globalAlpha = hotspotAlpha;
-          ctx.fillRect(domeX, barY, domeW, barH);
+          ctx.fillRect(domeX, domeY, domeW, barH);
           ctx.restore();
         });
       }
 
       // 3. Fluting / Fresnel Optics with Asymmetric Dispersion & Light Catching
+      // Anchored strictly to the actual dome boundaries [domeX, domeX + domeW] and domeY
       if (dome.fluting.intensity > 0.05 && dome.fluting.density > 0) {
-        const ribCount = Math.floor((domeW / 100) * dome.fluting.density);
-        const ribWidth = domeW / ribCount;
+        const style = dome.fluting.style || 'vertical_ribs';
+        const ribCount = Math.max(3, Math.floor((domeW / 100) * dome.fluting.density));
+        const domeCenterX = domeX + domeW / 2;
+        const isCylindrical = sType === 'cylindrical_beacon' || sType === 'teardrop_beacon' || sType === 'dual_beacon_bridge';
 
+        if (style === 'fresnel_prism') {
+          // Horizontal stepped refraction bands across dome height
+          const bandCount = 5;
+          const bandH = barH / bandCount;
+          for (let b = 0; b < bandCount; b++) {
+            const by = domeY + b * bandH;
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.1 * dome.fluting.intensity})`;
+            ctx.fillRect(domeX, by, domeW, 1.4);
+            ctx.fillStyle = `rgba(0, 0, 0, ${0.14 * dome.fluting.intensity})`;
+            ctx.fillRect(domeX, by + bandH - 1.4, domeW, 1.4);
+          }
+
+          // Concentric circular refractive rings around lights
+          domeFlares.forEach((f) => {
+            const ringCount = 3;
+            for (let r = 1; r <= ringCount; r++) {
+              ctx.strokeStyle = `rgba(255, 255, 255, ${0.18 * dome.fluting.intensity * f.internalIntensity})`;
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.arc(f.x, f.y, r * 14, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+          });
+        } else if (style === 'diamond_optic') {
+          // Prismatic diamond facets (criss-cross angled ridges)
+          const diagSpacing = Math.max(6, 110 / dome.fluting.density);
+          ctx.save();
+          ctx.lineWidth = 1;
+          for (let d = -barH; d < domeW + barH; d += diagSpacing) {
+            ctx.strokeStyle = `rgba(255, 255, 255, ${0.12 * dome.fluting.intensity})`;
+            ctx.beginPath();
+            ctx.moveTo(domeX + d, domeY);
+            ctx.lineTo(domeX + d + barH, domeY + barH);
+            ctx.stroke();
+
+            ctx.strokeStyle = `rgba(0, 0, 0, ${0.12 * dome.fluting.intensity})`;
+            ctx.beginPath();
+            ctx.moveTo(domeX + d, domeY + barH);
+            ctx.lineTo(domeX + d + barH, domeY);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        // Vertical optical fluting ridges (anchored to dome position)
         for (let i = 0; i < ribCount; i++) {
-          const rx = domeX + i * ribWidth;
+          let rx: number;
+          let ribWidth: number;
+
+          if (isCylindrical) {
+            // Cylindrical perspective foreshortening: ridges compress toward curved outer edges
+            const t0 = -1 + (2 * i) / ribCount;
+            const t1 = -1 + (2 * (i + 1)) / ribCount;
+            const maxSin = Math.sin(Math.PI * 0.46);
+            const p0 = domeCenterX + (Math.sin(t0 * Math.PI * 0.46) / maxSin) * (domeW * 0.5);
+            const p1 = domeCenterX + (Math.sin(t1 * Math.PI * 0.46) / maxSin) * (domeW * 0.5);
+            rx = Math.min(p0, p1);
+            ribWidth = Math.max(1.5, Math.abs(p1 - p0));
+          } else {
+            // Precision uniform spacing anchored to domeX and domeW
+            ribWidth = domeW / ribCount;
+            rx = domeX + i * ribWidth;
+          }
 
           // Rib refractive highlight & shadow groove pair
           const ribAlpha = 0.14 * dome.fluting.intensity;
           ctx.fillStyle = `rgba(255, 255, 255, ${ribAlpha})`;
-          ctx.fillRect(rx, barY, ribWidth * 0.35, barH);
+          ctx.fillRect(rx, domeY, ribWidth * 0.35, barH);
 
           ctx.fillStyle = `rgba(0, 0, 0, ${ribAlpha * 1.25})`;
-          ctx.fillRect(rx + ribWidth * 0.5, barY, ribWidth * 0.5, barH);
+          ctx.fillRect(rx + ribWidth * 0.5, domeY, ribWidth * 0.5, barH);
 
           // If light is inside, fluting ribs catch and refract light unevenly
           domeFlares.forEach((f) => {
@@ -1467,13 +1534,13 @@ export class LightbarRenderer {
               ctx.globalCompositeOperation = 'screen';
               ctx.fillStyle = f.coreColor;
               ctx.globalAlpha = Math.min(0.9, catchAlpha);
-              ctx.fillRect(rx, barY, ribWidth * 0.55, barH);
+              ctx.fillRect(rx, domeY, ribWidth * 0.55, barH);
 
               // Secondary chromatic edge fringing on adjacent rib face
               if (dist < 70) {
                 ctx.fillStyle = f.glowColor;
                 ctx.globalAlpha = Math.min(0.65, catchAlpha * 0.7);
-                ctx.fillRect(rx + ribWidth * 0.4, barY, ribWidth * 0.4, barH);
+                ctx.fillRect(rx + ribWidth * 0.4, domeY, ribWidth * 0.4, barH);
               }
               ctx.restore();
             }
@@ -1492,7 +1559,7 @@ export class LightbarRenderer {
 
         for (let s = 0; s < scratchCount; s++) {
           const sx = domeX + rng() * domeW;
-          const sy = barY + rng() * barH;
+          const sy = domeY + rng() * barH;
           const length = 10 + rng() * 28;
           const angle = (rng() - 0.5) * Math.PI * 0.85; // angled/crosshatch
           const isSwirl = rng() > 0.55; // curved wiper/cleaning swirl
@@ -1558,15 +1625,15 @@ export class LightbarRenderer {
       // 5. Aging Patina: UV Degradation Patina & Road Dirt Haze
       if (yellowing > 0.03) {
         ctx.fillStyle = `rgba(217, 119, 6, ${yellowing * 0.28})`;
-        ctx.fillRect(domeX, barY, domeW, barH);
+        ctx.fillRect(domeX, domeY, domeW, barH);
       }
 
       if (dirt > 0.03) {
-        const dirtGrad = ctx.createLinearGradient(0, barY + barH - 26, 0, barY + barH);
+        const dirtGrad = ctx.createLinearGradient(0, domeY + barH - 26, 0, domeY + barH);
         dirtGrad.addColorStop(0, 'rgba(120, 113, 108, 0)');
         dirtGrad.addColorStop(1, `rgba(87, 83, 78, ${dirt * 0.55})`);
         ctx.fillStyle = dirtGrad;
-        ctx.fillRect(domeX, barY + barH - 26, domeW, 26);
+        ctx.fillRect(domeX, domeY + barH - 26, domeW, 26);
       }
 
       // 6. Total Internal Reflection (TIR) Glowing Rims
@@ -1577,20 +1644,20 @@ export class LightbarRenderer {
         const rimAlpha = Math.min(0.85, trappedGlow * 0.45);
 
         // Top edge glow
-        const topRimGrad = ctx.createLinearGradient(0, barY, 0, barY + 5);
+        const topRimGrad = ctx.createLinearGradient(0, domeY, 0, domeY + 5);
         topRimGrad.addColorStop(0, `rgba(255, 255, 255, ${rimAlpha * 0.95})`);
         topRimGrad.addColorStop(0.5, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${rimAlpha * 0.8})`);
         topRimGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
         ctx.fillStyle = topRimGrad;
-        ctx.fillRect(domeX, barY, domeW, 5);
+        ctx.fillRect(domeX, domeY, domeW, 5);
 
         // Bottom edge glow
-        const btmRimGrad = ctx.createLinearGradient(0, barY + barH - 5, 0, barY + barH);
+        const btmRimGrad = ctx.createLinearGradient(0, domeY + barH - 5, 0, domeY + barH);
         btmRimGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
         btmRimGrad.addColorStop(0.5, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${rimAlpha * 0.75})`);
         btmRimGrad.addColorStop(1, `rgba(255, 255, 255, ${rimAlpha * 0.85})`);
         ctx.fillStyle = btmRimGrad;
-        ctx.fillRect(domeX, barY + barH - 5, domeW, 5);
+        ctx.fillRect(domeX, domeY + barH - 5, domeW, 5);
         ctx.restore();
       }
 

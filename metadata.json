@@ -1,0 +1,6 @@
+{
+  "name": "Optical Lightbar Simulator",
+  "description": "An immersive 2D rasterized optical simulator for rotary, halogen, and xenon emergency lightbars with glass refraction, halos, and custom sequencing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

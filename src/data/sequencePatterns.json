@@ -1,0 +1,63 @@
+{
+  "$schema": "ClearBatch-ExtraX/v1.0",
+  "meta": {
+    "module": "SequencePatterns",
+    "version": "1.0.0"
+  },
+  "patterns": [
+    {
+      "id": "wig_wag",
+      "name": "Classic Alternating Wig-Wag",
+      "description": "Standard alternating cadence between side A and side B.",
+      "defaultBpm": 75,
+      "stepsA": [true,  true,  false, false, true,  true,  false, false],
+      "stepsB": [false, false, true,  true,  false, false, true,  true ],
+      "stepsC": [true,  false, true,  false, true,  false, true,  false]
+    },
+    {
+      "id": "quad_strobe",
+      "name": "High-Intensity Quad-Flash",
+      "description": "Four rapid bursts per cycle for strobe discharge tubes.",
+      "defaultBpm": 120,
+      "stepsA": [true, false, true, false, true, false, true, false, false, false, false, false, false, false, false, false],
+      "stepsB": [false, false, false, false, false, false, false, false, true, false, true, false, true, false, true, false],
+      "stepsC": [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false]
+    },
+    {
+      "id": "double_strobe",
+      "name": "Pursuit Double-Flash",
+      "description": "Double pop on left then right, high psychological urgency.",
+      "defaultBpm": 100,
+      "stepsA": [true, false, true, false, false, false, false, false],
+      "stepsB": [false, false, false, false, true, false, true, false],
+      "stepsC": [false, true, false, true, false, true, false, true]
+    },
+    {
+      "id": "hyper_flash",
+      "name": "Code 3 Hyper-Flash",
+      "description": "Rapid synchronized pulsing for intersection clearing.",
+      "defaultBpm": 180,
+      "stepsA": [true, false, true, false, true, false, true, false],
+      "stepsB": [false, true, false, true, false, true, false, true],
+      "stepsC": [true, true, false, false, true, true, false, false]
+    },
+    {
+      "id": "california_steady",
+      "name": "California Code (Steady Burn Red)",
+      "description": "Continuous forward red burn with alternating rear/secondary flashers.",
+      "defaultBpm": 90,
+      "stepsA": [true, true, true, true, true, true, true, true],
+      "stepsB": [true, true, false, false, true, true, false, false],
+      "stepsC": [false, false, true, true, false, false, true, true]
+    },
+    {
+      "id": "all_flash",
+      "name": "Simultaneous Hazard Pulse",
+      "description": "All groups pulse in unison for high-visibility roadblock / hazard.",
+      "defaultBpm": 60,
+      "stepsA": [true, true, true, true, false, false, false, false],
+      "stepsB": [true, true, true, true, false, false, false, false],
+      "stepsC": [true, true, true, true, false, false, false, false]
+    }
+  ]
+}

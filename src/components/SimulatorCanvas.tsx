@@ -172,31 +172,29 @@ export const SimulatorCanvas: React.FC<SimulatorCanvasProps> = ({
       const canvas = canvasRef.current;
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const canvasW = rect.width;
+      const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const clickY = (e.clientY - rect.top) * (canvas.height / rect.height);
 
-      const barW = Math.min(canvasW * 0.88, 1000);
-      const barX = (canvasW - barW) / 2;
+      const { barX, barY, barW, barH } = LightbarRenderer.getStructureBounds(config, canvas.width, canvas.height);
 
-      // Check if clicked in bar area
-      if (clickX >= barX && clickX <= barX + barW) {
-        const normX = (clickX - barX) / barW;
-        // Find nearest element
-        let closestElem = config.elements[0];
-        let minDiff = 999;
-        config.elements.forEach((elem) => {
-          const diff = Math.abs(elem.xNorm - normX);
-          if (diff < minDiff) {
-            minDiff = diff;
-            closestElem = elem;
-          }
-        });
-        if (closestElem && minDiff < 0.15) {
-          onSelectElement(closestElem.id);
+      // Find nearest element within click radius
+      let closestElem = config.elements[0];
+      let minDistance = 99999;
+      config.elements.forEach((elem) => {
+        const { x, y } = LightbarRenderer.getElementPosition(elem, config, barX, barY, barW, barH);
+        const dist = Math.hypot(clickX - x, clickY - y);
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestElem = elem;
         }
+      });
+
+      // Max hit radius in canvas pixels (~60px)
+      if (closestElem && minDistance < 70) {
+        onSelectElement(closestElem.id);
       }
     },
-    [config.elements, onSelectElement]
+    [config, onSelectElement]
   );
 
   return (

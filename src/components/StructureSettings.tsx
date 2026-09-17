@@ -50,10 +50,14 @@ export const StructureSettings: React.FC<StructureSettingsProps> = ({
               }
               className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1.5 text-xs text-zinc-200 font-medium focus:outline-none cursor-pointer"
             >
+              <option value="cylindrical_beacon">Cylindrical Beacon (Federal Model 17 / 184 Ray)</option>
+              <option value="teardrop_beacon">Teardrop Pod Beacon (Kojak / Mars 888 Skybolt)</option>
+              <option value="v_bar">Forward-Swept V-Bar (Federal Vector / Vision 7-Pod)</option>
+              <option value="dual_beacon_bridge">Twin Beacon Bridge with Q2B Siren (1960s Classic)</option>
+              <option value="mini_bar">Compact Utility Mini-Bar (Dual Rotator / Tow Spec)</option>
               <option value="rotary_domes">Rotary Lightbar with Domes (Vintage Twin)</option>
               <option value="rigid_bar">Rigid Metal Extrusion Bar (Modular Pods)</option>
               <option value="aero_modular">Aerodynamic Continuous Contoured Housing</option>
-              <option value="v_bar">Forward-Swept V-Shape Bar (Vector Spec)</option>
             </select>
           </div>
 
@@ -67,6 +71,7 @@ export const StructureSettings: React.FC<StructureSettingsProps> = ({
                 className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-200 cursor-pointer"
               >
                 <option value="chrome">Polished Chrome</option>
+                <option value="stainless_tubular">Stainless Tubular Rails</option>
                 <option value="black_powder">Black Powder-Coat</option>
                 <option value="brushed_aluminum">Brushed Aluminum</option>
               </select>
@@ -80,7 +85,8 @@ export const StructureSettings: React.FC<StructureSettingsProps> = ({
               >
                 <option value="vintage_mesh">Perforated Mesh</option>
                 <option value="slit_plate">Slotted Louver</option>
-                <option value="none">None (Full Lens)</option>
+                <option value="mechanical_siren">Mechanical Q2B Siren (Chrome Bullet)</option>
+                <option value="none">None (Full Lens / Beacon)</option>
               </select>
             </div>
           </div>
@@ -93,6 +99,8 @@ export const StructureSettings: React.FC<StructureSettingsProps> = ({
               onChange={(e) => handleStructureChange({ mountingFeet: e.target.value as any })}
               className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-200 cursor-pointer"
             >
+              <option value="pedestal_skirt">Spun Chrome Pedestal Skirt (Beacons)</option>
+              <option value="magnetic_mount">Heavy-Duty Magnetic Mount Pad</option>
               <option value="chrome_gutter">Vintage Chrome Gutter Clamps</option>
               <option value="low_profile_strap">Low-Profile Roof Straps</option>
               <option value="heavy_duty">Heavy-Duty Apparatus Feet</option>

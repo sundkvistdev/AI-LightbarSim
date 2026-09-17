@@ -2,7 +2,15 @@
  * Optical Lightbar Simulator - Type Definitions
  */
 
-export type BaseStructureType = 'rotary_domes' | 'rigid_bar' | 'aero_modular' | 'v_bar';
+export type BaseStructureType =
+  | 'rotary_domes'
+  | 'rigid_bar'
+  | 'aero_modular'
+  | 'v_bar'
+  | 'cylindrical_beacon'
+  | 'teardrop_beacon'
+  | 'mini_bar'
+  | 'dual_beacon_bridge';
 
 export type ElementType = 'rotating_halogen' | 'static_halogen' | 'xenon_strobe' | 'modern_led';
 
@@ -90,11 +98,14 @@ export interface LightbarConfig {
   description: string;
   structure: {
     type: BaseStructureType;
-    widthMm: number; // Physical length e.g. 1200mm
-    heightMm: number; // Height e.g. 160mm
-    frameFinish: 'chrome' | 'black_powder' | 'brushed_aluminum';
-    speakerCenter: 'vintage_mesh' | 'slit_plate' | 'none';
-    mountingFeet: 'chrome_gutter' | 'low_profile_strap' | 'heavy_duty';
+    widthMm: number; // Physical length e.g. 1200mm (or 260mm for beacons)
+    heightMm: number; // Height e.g. 160mm (or 280mm for beacons)
+    frameFinish: 'chrome' | 'black_powder' | 'brushed_aluminum' | 'stainless_tubular';
+    speakerCenter: 'vintage_mesh' | 'slit_plate' | 'mechanical_siren' | 'none';
+    mountingFeet: 'chrome_gutter' | 'low_profile_strap' | 'heavy_duty' | 'magnetic_mount' | 'pedestal_skirt';
+    podCount?: number; // E.g. 7 for Vector V-bar
+    vAngleDeg?: number; // E.g. 24 degrees forward chevron
+    beaconShape?: 'cylindrical_stepped' | 'bullet_dome' | 'teardrop_bubble' | 'low_profile';
   };
   domes: DomeSection[];
   elements: LightElement[];

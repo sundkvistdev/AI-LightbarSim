@@ -1543,6 +1543,390 @@
           }
         }
       ]
+    },
+    {
+      "id": "beacon_ray_17_1968",
+      "name": "Federal Model 17 Beacon Ray (1968)",
+      "era": "1960s Classic Gumball",
+      "description": "Legendary 4-bulb four-sealed-beam rotating beacon atop a spun chrome pedestal skirt with high-domed ruby red glass.",
+      "structure": {
+        "type": "cylindrical_beacon",
+        "widthMm": 260,
+        "heightMm": 270,
+        "frameFinish": "chrome",
+        "speakerCenter": "none",
+        "mountingFeet": "pedestal_skirt"
+      },
+      "domes": [
+        {
+          "id": "beacon_dome_red",
+          "name": "Ruby Red Cylindrical Glass Dome",
+          "startX": 0.0,
+          "endX": 1.0,
+          "color": "#dc2626",
+          "opacity": 0.88,
+          "cloudiness": 0.24,
+          "fluting": {
+            "style": "vertical_ribs",
+            "density": 26,
+            "intensity": 0.85
+          },
+          "wear": {
+            "scratches": 0.3,
+            "yellowing": 0.12,
+            "dirtHaze": 0.18
+          }
+        }
+      ],
+      "elements": [
+        {
+          "id": "bcn_lamp_1",
+          "name": "Sealed-Beam Lamp #1 (0°)",
+          "type": "rotating_halogen",
+          "xNorm": 0.5,
+          "yNorm": -0.06,
+          "subglassColor": null,
+          "brightness": 1.7,
+          "wear": { "fadeWear": 0.12, "reflectorTarnish": 0.15, "jitter": 0.015 },
+          "syncGroup": "A",
+          "enabled": true,
+          "rotator": {
+            "rpm": 55,
+            "beamSpreadDeg": 22,
+            "rotationDirection": 1,
+            "phaseOffsetDeg": 0,
+            "reflectorType": "parabolic_dish",
+            "wattage": 50,
+            "filamentWarmth": 2850,
+            "reflectorFinish": "chrome"
+          }
+        },
+        {
+          "id": "bcn_lamp_2",
+          "name": "Sealed-Beam Lamp #2 (90°)",
+          "type": "rotating_halogen",
+          "xNorm": 0.5,
+          "yNorm": -0.06,
+          "subglassColor": null,
+          "brightness": 1.7,
+          "wear": { "fadeWear": 0.14, "reflectorTarnish": 0.15, "jitter": 0.015 },
+          "syncGroup": "A",
+          "enabled": true,
+          "rotator": {
+            "rpm": 55,
+            "beamSpreadDeg": 22,
+            "rotationDirection": 1,
+            "phaseOffsetDeg": 90,
+            "reflectorType": "parabolic_dish",
+            "wattage": 50,
+            "filamentWarmth": 2850,
+            "reflectorFinish": "chrome"
+          }
+        },
+        {
+          "id": "bcn_lamp_3",
+          "name": "Sealed-Beam Lamp #3 (180°)",
+          "type": "rotating_halogen",
+          "xNorm": 0.5,
+          "yNorm": -0.06,
+          "subglassColor": null,
+          "brightness": 1.7,
+          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.15, "jitter": 0.015 },
+          "syncGroup": "A",
+          "enabled": true,
+          "rotator": {
+            "rpm": 55,
+            "beamSpreadDeg": 22,
+            "rotationDirection": 1,
+            "phaseOffsetDeg": 180,
+            "reflectorType": "parabolic_dish",
+            "wattage": 50,
+            "filamentWarmth": 2850,
+            "reflectorFinish": "chrome"
+          }
+        },
+        {
+          "id": "bcn_lamp_4",
+          "name": "Sealed-Beam Lamp #4 (270°)",
+          "type": "rotating_halogen",
+          "xNorm": 0.5,
+          "yNorm": -0.06,
+          "subglassColor": null,
+          "brightness": 1.7,
+          "wear": { "fadeWear": 0.13, "reflectorTarnish": 0.15, "jitter": 0.015 },
+          "syncGroup": "A",
+          "enabled": true,
+          "rotator": {
+            "rpm": 55,
+            "beamSpreadDeg": 22,
+            "rotationDirection": 1,
+            "phaseOffsetDeg": 270,
+            "reflectorType": "parabolic_dish",
+            "wattage": 50,
+            "filamentWarmth": 2850,
+            "reflectorFinish": "chrome"
+          }
+        }
+      ]
+    },
+    {
+      "id": "dietz_teardrop_1976",
+      "name": "Dietz 211 Teardrop Beacon (1976)",
+      "era": "1970s Highway Patrol",
+      "description": "Aerodynamic teardrop amber warning beacon with dual-sided rotating mirror and magnetic roof pad for unmarked interceptors.",
+      "structure": {
+        "type": "teardrop_beacon",
+        "widthMm": 240,
+        "heightMm": 210,
+        "frameFinish": "chrome",
+        "speakerCenter": "none",
+        "mountingFeet": "magnetic_mount"
+      },
+      "domes": [
+        {
+          "id": "teardrop_dome_amber",
+          "name": "Amber Aerodynamic Teardrop Lens",
+          "startX": 0.0,
+          "endX": 1.0,
+          "color": "#f59e0b",
+          "opacity": 0.85,
+          "cloudiness": 0.2,
+          "fluting": {
+            "style": "prismatic_diamonds",
+            "density": 22,
+            "intensity": 0.75
+          },
+          "wear": {
+            "scratches": 0.25,
+            "yellowing": 0.1,
+            "dirtHaze": 0.15
+          }
+        }
+      ],
+      "elements": [
+        {
+          "id": "teardrop_rotator",
+          "name": "Dual-Sided High-Speed Rotator",
+          "type": "rotating_halogen",
+          "xNorm": 0.5,
+          "yNorm": -0.05,
+          "subglassColor": null,
+          "brightness": 1.85,
+          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.1, "jitter": 0.01 },
+          "syncGroup": "A",
+          "enabled": true,
+          "rotator": {
+            "rpm": 90,
+            "beamSpreadDeg": 24,
+            "rotationDirection": 1,
+            "phaseOffsetDeg": 0,
+            "reflectorType": "dual_sided_mirror",
+            "wattage": 55,
+            "filamentWarmth": 3000,
+            "reflectorFinish": "chrome"
+          }
+        }
+      ]
+    },
+    {
+      "id": "twin_beacon_bridge_1972",
+      "name": "Twin Beacon Bridge & Q2B Siren (1972)",
+      "era": "1970s Fire Chief Rig",
+      "description": "Twin spun-chrome rotating beacon turrets mounted on heavy stainless tubular crossbars flanking a center Federal Q2B mechanical siren.",
+      "structure": {
+        "type": "dual_beacon_bridge",
+        "widthMm": 1380,
+        "heightMm": 230,
+        "frameFinish": "stainless_tubular",
+        "speakerCenter": "mechanical_siren",
+        "mountingFeet": "chrome_gutter"
+      },
+      "domes": [
+        {
+          "id": "bridge_dome_left",
+          "name": "Left Turret Beacon (Ruby Red)",
+          "startX": 0.04,
+          "endX": 0.28,
+          "color": "#dc2626",
+          "opacity": 0.88,
+          "cloudiness": 0.24,
+          "fluting": {
+            "style": "vertical_ribs",
+            "density": 22,
+            "intensity": 0.85
+          },
+          "wear": {
+            "scratches": 0.28,
+            "yellowing": 0.1,
+            "dirtHaze": 0.18
+          }
+        },
+        {
+          "id": "bridge_dome_right",
+          "name": "Right Turret Beacon (Ruby Red)",
+          "startX": 0.72,
+          "endX": 0.96,
+          "color": "#dc2626",
+          "opacity": 0.88,
+          "cloudiness": 0.24,
+          "fluting": {
+            "style": "vertical_ribs",
+            "density": 22,
+            "intensity": 0.85
+          },
+          "wear": {
+            "scratches": 0.28,
+            "yellowing": 0.1,
+            "dirtHaze": 0.18
+          }
+        }
+      ],
+      "elements": [
+        {
+          "id": "bridge_rot_left",
+          "name": "Left Beacon Parabolic Rotator",
+          "type": "rotating_halogen",
+          "xNorm": 0.16,
+          "yNorm": -0.05,
+          "subglassColor": null,
+          "brightness": 1.8,
+          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.12, "jitter": 0.01 },
+          "syncGroup": "A",
+          "enabled": true,
+          "rotator": {
+            "rpm": 75,
+            "beamSpreadDeg": 20,
+            "rotationDirection": 1,
+            "phaseOffsetDeg": 0,
+            "reflectorType": "parabolic_dish",
+            "wattage": 60,
+            "filamentWarmth": 2900,
+            "reflectorFinish": "chrome"
+          }
+        },
+        {
+          "id": "bridge_rot_right",
+          "name": "Right Beacon Parabolic Rotator",
+          "type": "rotating_halogen",
+          "xNorm": 0.84,
+          "yNorm": -0.05,
+          "subglassColor": null,
+          "brightness": 1.8,
+          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.12, "jitter": 0.01 },
+          "syncGroup": "A",
+          "enabled": true,
+          "rotator": {
+            "rpm": 75,
+            "beamSpreadDeg": 20,
+            "rotationDirection": 1,
+            "phaseOffsetDeg": 180,
+            "reflectorType": "parabolic_dish",
+            "wattage": 60,
+            "filamentWarmth": 2900,
+            "reflectorFinish": "chrome"
+          }
+        }
+      ]
+    },
+    {
+      "id": "code3_mini_bar_1989",
+      "name": "Code 3 XL Mini-Bar (1989)",
+      "era": "1980s Compact Response",
+      "description": "Compact 18-inch mini-lightbar featuring opposing high-speed rotators reflecting off a center diamond mirror.",
+      "structure": {
+        "type": "mini_bar",
+        "widthMm": 540,
+        "heightMm": 145,
+        "frameFinish": "brushed_aluminum",
+        "speakerCenter": "none",
+        "mountingFeet": "magnetic_mount"
+      },
+      "domes": [
+        {
+          "id": "mini_dome_left",
+          "name": "Left Amber Lens",
+          "startX": 0.0,
+          "endX": 0.5,
+          "color": "#f59e0b",
+          "opacity": 0.86,
+          "cloudiness": 0.18,
+          "fluting": {
+            "style": "vertical_ribs",
+            "density": 20,
+            "intensity": 0.8
+          },
+          "wear": {
+            "scratches": 0.2,
+            "yellowing": 0.08,
+            "dirtHaze": 0.12
+          }
+        },
+        {
+          "id": "mini_dome_right",
+          "name": "Right Amber Lens",
+          "startX": 0.5,
+          "endX": 1.0,
+          "color": "#f59e0b",
+          "opacity": 0.86,
+          "cloudiness": 0.18,
+          "fluting": {
+            "style": "vertical_ribs",
+            "density": 20,
+            "intensity": 0.8
+          },
+          "wear": {
+            "scratches": 0.2,
+            "yellowing": 0.08,
+            "dirtHaze": 0.12
+          }
+        }
+      ],
+      "elements": [
+        {
+          "id": "mini_rot_left",
+          "name": "Left High-Speed Rotator",
+          "type": "rotating_halogen",
+          "xNorm": 0.22,
+          "yNorm": 0.0,
+          "subglassColor": null,
+          "brightness": 1.7,
+          "wear": { "fadeWear": 0.08, "reflectorTarnish": 0.08, "jitter": 0.008 },
+          "syncGroup": "A",
+          "enabled": true,
+          "rotator": {
+            "rpm": 125,
+            "beamSpreadDeg": 22,
+            "rotationDirection": -1,
+            "phaseOffsetDeg": 0,
+            "reflectorType": "parabolic_dish",
+            "wattage": 55,
+            "filamentWarmth": 3050,
+            "reflectorFinish": "chrome"
+          }
+        },
+        {
+          "id": "mini_rot_right",
+          "name": "Right High-Speed Rotator",
+          "type": "rotating_halogen",
+          "xNorm": 0.78,
+          "yNorm": 0.0,
+          "subglassColor": null,
+          "brightness": 1.7,
+          "wear": { "fadeWear": 0.08, "reflectorTarnish": 0.08, "jitter": 0.008 },
+          "syncGroup": "A",
+          "enabled": true,
+          "rotator": {
+            "rpm": 125,
+            "beamSpreadDeg": 22,
+            "rotationDirection": 1,
+            "phaseOffsetDeg": 90,
+            "reflectorType": "parabolic_dish",
+            "wattage": 55,
+            "filamentWarmth": 3050,
+            "reflectorFinish": "chrome"
+          }
+        }
+      ]
     }
   ]
 }

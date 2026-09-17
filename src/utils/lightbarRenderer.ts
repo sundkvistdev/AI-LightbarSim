@@ -79,6 +79,60 @@ export class LightbarRenderer {
   }
 
   /**
+   * Helper to calculate pixel bounding box for any lightbar or beacon structure type
+   */
+  public static getStructureBounds(
+    config: LightbarConfig,
+    canvasW: number,
+    canvasH: number
+  ): { barX: number; barY: number; barW: number; barH: number } {
+    const sType = config.structure.type;
+    const isBeacon = sType === 'cylindrical_beacon' || sType === 'teardrop_beacon';
+    const isMiniBar = sType === 'mini_bar';
+
+    let barW: number;
+    let barH: number;
+
+    if (isBeacon) {
+      // Beacon: scale proportional to canvas height to preserve iconic tall vertical silhouette
+      barH = Math.min(canvasH * 0.52, 275);
+      barW = barH * (config.structure.widthMm / Math.max(1, config.structure.heightMm));
+    } else if (isMiniBar) {
+      // Mini-bar: compact mid-width footprint
+      barW = Math.min(canvasW * 0.48, 500);
+      barH = barW * (config.structure.heightMm / Math.max(1, config.structure.widthMm));
+    } else {
+      // Full lightbars, V-bars, and Bridges
+      barW = Math.min(canvasW * 0.88, 1000);
+      barH = Math.min(canvasH * 0.48, barW * (config.structure.heightMm / Math.max(1, config.structure.widthMm)));
+    }
+
+    const barX = (canvasW - barW) / 2;
+    const barY = canvasH * 0.43 - barH / 2;
+    return { barX, barY, barW, barH };
+  }
+
+  /**
+   * Calculate precise 2D screen coordinate for an element, accounting for V-bar forward-swept chevron offsets
+   */
+  public static getElementPosition(
+    elem: LightElement,
+    config: LightbarConfig,
+    barX: number,
+    barY: number,
+    barW: number,
+    barH: number
+  ): { x: number; y: number; vYOffset: number } {
+    const isVBar = config.structure.type === 'v_bar';
+    const vAngleFactor = (config.structure.vAngleDeg || 24) / 24;
+    // For V-bars, center pod is swept forward (offset downwards in standard front view projection)
+    const vYOffset = isVBar ? (1 - 2 * Math.abs(elem.xNorm - 0.5)) * barH * 0.32 * vAngleFactor : 0;
+    const x = barX + elem.xNorm * barW;
+    const y = barY + barH * 0.5 + elem.yNorm * barH * 0.5 + vYOffset;
+    return { x, y, vYOffset };
+  }
+
+  /**
    * Main simulation step and render pass
    */
   public render(
@@ -116,11 +170,8 @@ export class LightbarRenderer {
     // 2. Clear canvas with atmosphere background
     this.renderAtmosphereBackground(settings, width, height, state.timeSec);
 
-    // 3. Layout geometry
-    const barW = Math.min(width * 0.88, 1000);
-    const barH = barW * (config.structure.heightMm / config.structure.widthMm);
-    const barX = (width - barW) / 2;
-    const barY = height * 0.42 - barH / 2;
+    // 3. Layout geometry with dynamic structure type bounds
+    const { barX, barY, barW, barH } = LightbarRenderer.getStructureBounds(config, width, height);
 
     // 4. Render Vehicle Roof & Mountings
     this.renderVehicleMountings(config, settings, barX, barY, barW, barH);
@@ -135,8 +186,20 @@ export class LightbarRenderer {
     config.elements.forEach((elem) => {
       if (!elem.enabled) return;
 
-      const elemX = barX + elem.xNorm * barW;
-      const elemY = barY + barH * 0.5 + elem.yNorm * barH * 0.5;
+      const { x: elemX, y: elemY } = LightbarRenderer.getElementPosition(
+        elem,
+        config,
+        barX,
+        barY,
+        barW,
+        barH
+      );
+
+      // Dynamic element size based on structure type
+      const isBeacon = config.structure.type === 'cylindrical_beacon' || config.structure.type === 'teardrop_beacon';
+      const elemRenderSize = isBeacon
+        ? (config.elements.length > 2 ? barH * 0.44 : barH * 0.68)
+        : barH * 0.7;
 
       // Find overlapping dome section for glass color and optics
       const matchingDome = config.domes.find(
@@ -185,13 +248,13 @@ export class LightbarRenderer {
         );
 
         // Draw internal reflector mechanism
-        this.renderRotatorReflector(ctx, elem, elemX, elemY, barH * 0.7, effectiveAngle, blended);
+        this.renderRotatorReflector(ctx, elem, elemX, elemY, elemRenderSize, effectiveAngle, blended);
 
         // Active flash intensity
         const flashIntensity = directionalGlow * elem.brightness * (1 - elem.wear.fadeWear * 0.3);
 
         // Internal beam sweep & continuous filament radiation into the dome glass
-        const sweepOffset = Math.sin(effectiveAngle) * (barH * 0.95);
+        const sweepOffset = Math.sin(effectiveAngle) * (elemRenderSize * 1.35);
         const internalBeamProximity = Math.max(0, 0.4 + 0.6 * Math.cos(effectiveAngle));
         const continuousFilamentGlow = 0.32 * elem.brightness;
         const internalIntensity = (continuousFilamentGlow + internalBeamProximity * 1.5 * elem.brightness) * (1 - elem.wear.fadeWear * 0.2);
@@ -246,7 +309,7 @@ export class LightbarRenderer {
         );
 
         // Draw static halogen bulb envelope and reflector
-        this.renderStaticHalogenBulb(ctx, elem, elemX, elemY, barH * 0.65, thermal, blended);
+        this.renderStaticHalogenBulb(ctx, elem, elemX, elemY, elemRenderSize * 0.92, thermal, blended);
 
         const internalIntensity = thermal * elem.brightness * 1.5;
         if (thermal > 0.03) {
@@ -300,7 +363,7 @@ export class LightbarRenderer {
           domeCloud
         );
 
-        this.renderXenonStrobeTube(ctx, elem, elemX, elemY, barH * 0.6, energy, blended);
+        this.renderXenonStrobeTube(ctx, elem, elemX, elemY, elemRenderSize * 0.85, energy, blended);
 
         const internalIntensity = energy * elem.brightness * 2.8;
         if (energy > 0.03) {
@@ -333,7 +396,7 @@ export class LightbarRenderer {
           domeOpacity,
           domeCloud
         );
-        this.renderLedModule(ctx, elem, elemX, elemY, barH * 0.5, isActive, blended);
+        this.renderLedModule(ctx, elem, elemX, elemY, elemRenderSize * 0.72, isActive, blended);
         const internalIntensity = intensity * 1.4;
         if (intensity > 0) {
           activeFlares.push({
@@ -475,10 +538,23 @@ export class LightbarRenderer {
     const ctx = this.ctx;
     ctx.save();
 
-    const roofY = barY + barH + 28;
-    const roofCurveH = 45;
+    const isBeacon = config.structure.type === 'cylindrical_beacon' || config.structure.type === 'teardrop_beacon';
+    const isMiniBar = config.structure.type === 'mini_bar';
+    const isBridge = config.structure.type === 'dual_beacon_bridge';
+
+    const roofOffset = isBeacon
+      ? (config.structure.mountingFeet === 'pedestal_skirt' ? 18 : 22)
+      : isBridge
+      ? 34
+      : 28;
+    const roofY = barY + barH + roofOffset;
+    const roofCurveH = isBeacon ? 26 : 45;
 
     // Vehicle roof curvature
+    const roofSpan = isBeacon ? Math.max(barW * 2.6, 380) : barW + 160;
+    const roofStartX = isBeacon ? barX + barW / 2 - roofSpan / 2 : barX - 80;
+    const roofEndX = isBeacon ? barX + barW / 2 + roofSpan / 2 : barX + barW + 80;
+
     const roofGrad = ctx.createLinearGradient(0, roofY, 0, roofY + 120);
     roofGrad.addColorStop(0, '#1c1f26');
     roofGrad.addColorStop(0.2, '#111317');
@@ -486,10 +562,10 @@ export class LightbarRenderer {
 
     ctx.fillStyle = roofGrad;
     ctx.beginPath();
-    ctx.moveTo(barX - 80, roofY + roofCurveH);
-    ctx.quadraticCurveTo(barX + barW / 2, roofY - 8, barX + barW + 80, roofY + roofCurveH);
-    ctx.lineTo(barX + barW + 120, roofY + 200);
-    ctx.lineTo(barX - 120, roofY + 200);
+    ctx.moveTo(roofStartX, roofY + roofCurveH);
+    ctx.quadraticCurveTo(barX + barW / 2, roofY - (isBeacon ? 4 : 8), roofEndX, roofY + roofCurveH);
+    ctx.lineTo(roofEndX + 40, roofY + 200);
+    ctx.lineTo(roofStartX - 40, roofY + 200);
     ctx.closePath();
     ctx.fill();
 
@@ -500,46 +576,124 @@ export class LightbarRenderer {
 
     // Mounting Feet / Brackets
     const footStyle = config.structure.mountingFeet;
-    const footPositions = [barX + barW * 0.12, barX + barW * 0.88];
 
-    footPositions.forEach((fx) => {
-      ctx.save();
-      const footW = 44;
-      const footH = roofY - (barY + barH) + 6;
+    if (isBeacon) {
+      // Single center mounting under beacon
+      const cx = barX + barW / 2;
+      if (footStyle === 'pedestal_skirt') {
+        // Classic spun chrome flared conical skirt
+        const skirtTopW = barW * 0.94;
+        const skirtBtmW = barW * 1.22;
+        const skirtH = roofY - (barY + barH) + 4;
 
-      if (footStyle === 'chrome_gutter') {
-        const chromeGrad = ctx.createLinearGradient(fx - footW / 2, 0, fx + footW / 2, 0);
-        chromeGrad.addColorStop(0, '#4b5563');
-        chromeGrad.addColorStop(0.3, '#f3f4f6');
-        chromeGrad.addColorStop(0.5, '#e5e7eb');
-        chromeGrad.addColorStop(0.8, '#9ca3af');
-        chromeGrad.addColorStop(1, '#374151');
+        const chromeGrad = ctx.createLinearGradient(cx - skirtBtmW / 2, 0, cx + skirtBtmW / 2, 0);
+        chromeGrad.addColorStop(0, '#374151');
+        chromeGrad.addColorStop(0.2, '#9ca3af');
+        chromeGrad.addColorStop(0.45, '#ffffff');
+        chromeGrad.addColorStop(0.65, '#e5e7eb');
+        chromeGrad.addColorStop(0.85, '#6b7280');
+        chromeGrad.addColorStop(1, '#1f2937');
+
         ctx.fillStyle = chromeGrad;
+        ctx.beginPath();
+        ctx.moveTo(cx - skirtTopW / 2, barY + barH);
+        ctx.lineTo(cx + skirtTopW / 2, barY + barH);
+        ctx.quadraticCurveTo(cx + skirtBtmW / 2, roofY - 2, cx + skirtBtmW / 2, roofY);
+        ctx.lineTo(cx - skirtBtmW / 2, roofY);
+        ctx.quadraticCurveTo(cx - skirtBtmW / 2, roofY - 2, cx - skirtTopW / 2, barY + barH);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Thick rubber weather gasket ring at roof contact
+        ctx.fillStyle = '#09090b';
+        ctx.beginPath();
+        ctx.roundRect(cx - skirtBtmW / 2 - 3, roofY - 2, skirtBtmW + 6, 7, 2);
+        ctx.fill();
+
+        // Chrome fastening studs around base rim
+        ctx.fillStyle = '#f3f4f6';
+        [-0.38, -0.15, 0.15, 0.38].forEach((frac) => {
+          ctx.beginPath();
+          ctx.arc(cx + skirtBtmW * frac, roofY - 2, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      } else if (footStyle === 'magnetic_mount') {
+        // Heavy-duty magnetic suction pad
+        const padW = barW * 0.88;
+        const padH = 14;
+        ctx.fillStyle = '#111317';
+        ctx.beginPath();
+        ctx.roundRect(cx - padW / 2, roofY - 6, padW, padH, 3);
+        ctx.fill();
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = '#27272a';
+        ctx.fillRect(cx - padW / 2 + 4, roofY - 5, padW - 8, 3);
+        ctx.fillStyle = '#6b7280';
+        ctx.beginPath();
+        ctx.arc(cx, roofY - 1, 3.5, 0, Math.PI * 2);
+        ctx.fill();
       } else {
-        ctx.fillStyle = '#1e232d';
+        // Pedestal riser bracket
+        ctx.fillStyle = '#374151';
+        ctx.fillRect(cx - 18, barY + barH, 36, roofY - (barY + barH));
+        ctx.fillStyle = '#09090b';
+        ctx.fillRect(cx - 30, roofY - 2, 60, 8);
       }
+    } else {
+      // Lightbars, Bridges, and Mini-bars
+      const footPositions = isMiniBar
+        ? [barX + barW * 0.18, barX + barW * 0.82]
+        : isBridge
+        ? [barX - 10, barX + barW + 10]
+        : [barX + barW * 0.12, barX + barW * 0.88];
 
-      // Vertical support pylon
-      ctx.beginPath();
-      ctx.roundRect(fx - 14, barY + barH, 28, footH, 3);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
+      footPositions.forEach((fx) => {
+        ctx.save();
+        const footW = isBridge ? 36 : 44;
+        const footH = roofY - (barY + barH) + 6;
 
-      // Rubber pad clamping base
-      ctx.fillStyle = '#0f1115';
-      ctx.fillRect(fx - footW / 2, roofY - 2, footW, 10);
+        if (footStyle === 'chrome_gutter' || isBridge) {
+          const chromeGrad = ctx.createLinearGradient(fx - footW / 2, 0, fx + footW / 2, 0);
+          chromeGrad.addColorStop(0, '#4b5563');
+          chromeGrad.addColorStop(0.3, '#f3f4f6');
+          chromeGrad.addColorStop(0.5, '#e5e7eb');
+          chromeGrad.addColorStop(0.8, '#9ca3af');
+          chromeGrad.addColorStop(1, '#374151');
+          ctx.fillStyle = chromeGrad;
+        } else if (footStyle === 'magnetic_mount') {
+          ctx.fillStyle = '#18181b';
+        } else {
+          ctx.fillStyle = '#1e232d';
+        }
 
-      // Clamping bolts
-      ctx.fillStyle = '#9ca3af';
-      ctx.beginPath();
-      ctx.arc(fx - 8, barY + barH + 12, 2.5, 0, Math.PI * 2);
-      ctx.arc(fx + 8, barY + barH + 12, 2.5, 0, Math.PI * 2);
-      ctx.fill();
+        // Vertical support pylon / bridge stanchion
+        ctx.beginPath();
+        ctx.roundRect(fx - 14, barY + barH, 28, footH, 3);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
 
-      ctx.restore();
-    });
+        // Rubber pad clamping base
+        ctx.fillStyle = '#0f1115';
+        ctx.fillRect(fx - footW / 2, roofY - 2, footW, 10);
+
+        // Clamping bolts
+        ctx.fillStyle = '#9ca3af';
+        ctx.beginPath();
+        ctx.arc(fx - 8, barY + barH + 12, 2.5, 0, Math.PI * 2);
+        ctx.arc(fx + 8, barY + barH + 12, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      });
+    }
 
     ctx.restore();
   }
@@ -554,76 +708,368 @@ export class LightbarRenderer {
     const ctx = this.ctx;
     ctx.save();
 
-    // Housing base tray (extrusion)
     const finish = config.structure.frameFinish;
-    const trayH = 16;
-    const trayY = barY + barH;
+    const sType = config.structure.type;
 
-    const trayGrad = ctx.createLinearGradient(0, trayY, 0, trayY + trayH);
-    if (finish === 'chrome') {
-      trayGrad.addColorStop(0, '#9ca3af');
-      trayGrad.addColorStop(0.2, '#ffffff');
-      trayGrad.addColorStop(0.5, '#d1d5db');
-      trayGrad.addColorStop(0.8, '#4b5563');
-      trayGrad.addColorStop(1, '#1f2937');
-    } else if (finish === 'brushed_aluminum') {
-      trayGrad.addColorStop(0, '#6b7280');
-      trayGrad.addColorStop(0.3, '#9ca3af');
-      trayGrad.addColorStop(0.7, '#4b5563');
-      trayGrad.addColorStop(1, '#374151');
+    // Helper metallic linear gradient
+    const createMetalGrad = (x0: number, y0: number, x1: number, y1: number) => {
+      const g = ctx.createLinearGradient(x0, y0, x1, y1);
+      if (finish === 'chrome' || finish === 'stainless_tubular') {
+        g.addColorStop(0, '#4b5563');
+        g.addColorStop(0.2, '#f3f4f6');
+        g.addColorStop(0.5, '#e5e7eb');
+        g.addColorStop(0.8, '#9ca3af');
+        g.addColorStop(1, '#374151');
+      } else if (finish === 'brushed_aluminum') {
+        g.addColorStop(0, '#6b7280');
+        g.addColorStop(0.3, '#9ca3af');
+        g.addColorStop(0.7, '#4b5563');
+        g.addColorStop(1, '#374151');
+      } else {
+        // Black powder-coat
+        g.addColorStop(0, '#27272a');
+        g.addColorStop(0.5, '#18181b');
+        g.addColorStop(1, '#09090b');
+      }
+      return g;
+    };
+
+    if (sType === 'cylindrical_beacon') {
+      // Cylindrical Beacon: Chrome tension split-clamp ring around base of dome & central motor gearbox hub
+      const trayH = 18;
+      const trayY = barY + barH - 4;
+      const cx = barX + barW / 2;
+
+      // Chrome split-ring dome retaining band
+      const bandGrad = ctx.createLinearGradient(barX, 0, barX + barW, 0);
+      bandGrad.addColorStop(0, '#4b5563');
+      bandGrad.addColorStop(0.2, '#f3f4f6');
+      bandGrad.addColorStop(0.5, '#ffffff');
+      bandGrad.addColorStop(0.7, '#d1d5db');
+      bandGrad.addColorStop(1, '#374151');
+
+      ctx.fillStyle = bandGrad;
+      ctx.beginPath();
+      ctx.roundRect(barX - 4, trayY, barW + 8, trayH, 4);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Split-ring tension tightening latch & bolt on right side
+      ctx.fillStyle = '#1f2937';
+      ctx.fillRect(barX + barW - 6, trayY + 2, 8, trayH - 4);
+      ctx.fillStyle = '#f3f4f6';
+      ctx.beginPath();
+      ctx.arc(barX + barW - 2, trayY + trayH / 2, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Inner motor gearbox turntable & center vertical spindle shaft
+      ctx.fillStyle = '#111317';
+      ctx.beginPath();
+      ctx.roundRect(barX + 6, barY + barH * 0.76, barW - 12, barH * 0.22, 4);
+      ctx.fill();
+
+      // Brass drive gear teeth & chrome drive spindle
+      ctx.fillStyle = '#b45309';
+      ctx.fillRect(cx - 18, barY + barH * 0.82, 36, 6);
+      ctx.fillStyle = '#9ca3af';
+      ctx.fillRect(cx - 6, barY + barH * 0.38, 12, barH * 0.46);
+      ctx.strokeStyle = '#000000';
+      ctx.strokeRect(cx - 6, barY + barH * 0.38, 12, barH * 0.46);
+
+    } else if (sType === 'teardrop_beacon') {
+      // Aerodynamic Teardrop Base Tray & Reflector Cavity
+      const trayH = 16;
+      const trayY = barY + barH - 2;
+      const cx = barX + barW / 2;
+
+      ctx.fillStyle = createMetalGrad(barX, trayY, barX + barW, trayY + trayH);
+      ctx.beginPath();
+      ctx.roundRect(barX - 4, trayY, barW + 8, trayH, [3, 8, 8, 3]);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+      ctx.stroke();
+
+      // Inner drive motor
+      ctx.fillStyle = '#111317';
+      ctx.fillRect(cx - 16, barY + barH * 0.74, 32, barH * 0.22);
+      ctx.fillStyle = '#6b7280';
+      ctx.fillRect(cx - 4, barY + barH * 0.45, 8, barH * 0.32);
+
+    } else if (sType === 'v_bar') {
+      // Forward-Swept 7-Pod Chevron Truss Frame
+      const podCount = config.structure.podCount || 7;
+      const podW = barW / podCount;
+      const vAngleFactor = (config.structure.vAngleDeg || 24) / 24;
+
+      // Heavy-duty chevron wiring raceway spine spanning behind pods
+      ctx.fillStyle = '#111317';
+      ctx.beginPath();
+      for (let i = 0; i < podCount; i++) {
+        const podNormX = (i + 0.5) / podCount;
+        const vY = (1 - 2 * Math.abs(podNormX - 0.5)) * barH * 0.32 * vAngleFactor;
+        const px = barX + i * podW;
+        if (i === 0) ctx.moveTo(px, barY + barH * 0.85 + vY);
+        else ctx.lineTo(px + podW / 2, barY + barH * 0.85 + vY);
+      }
+      ctx.lineTo(barX + barW, barY + barH * 0.95);
+      ctx.lineTo(barX + barW, barY + barH + 16);
+      ctx.lineTo(barX, barY + barH + 16);
+      ctx.closePath();
+      ctx.fill();
+
+      // Pod base trays with forward-swept chevron angles
+      for (let i = 0; i < podCount; i++) {
+        const podNormX = (i + 0.5) / podCount;
+        const vY = (1 - 2 * Math.abs(podNormX - 0.5)) * barH * 0.32 * vAngleFactor;
+        const px = barX + i * podW;
+
+        // Pod tray
+        ctx.fillStyle = createMetalGrad(px, barY + barH + vY, px + podW, barY + barH + 14 + vY);
+        ctx.beginPath();
+        ctx.roundRect(px + 1, barY + barH + vY - 2, podW - 2, 14, 3);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Inner back wall of each pod
+        ctx.fillStyle = '#18181b';
+        ctx.fillRect(px + 2, barY + vY + 2, podW - 4, barH - 4);
+      }
+
+    } else if (sType === 'dual_beacon_bridge') {
+      // Twin Polished Stainless Steel Tubular Rails & Center Federal Q2B Mechanical Siren
+      const railH = 11;
+      const topRailY = barY + barH * 0.78;
+      const btmRailY = barY + barH + 10;
+
+      // Twin Stainless Tubular Crossbars
+      [topRailY, btmRailY].forEach((ry) => {
+        const railGrad = ctx.createLinearGradient(0, ry, 0, ry + railH);
+        railGrad.addColorStop(0, '#374151');
+        railGrad.addColorStop(0.25, '#f3f4f6');
+        railGrad.addColorStop(0.5, '#ffffff');
+        railGrad.addColorStop(0.75, '#9ca3af');
+        railGrad.addColorStop(1, '#1f2937');
+
+        ctx.fillStyle = railGrad;
+        ctx.beginPath();
+        ctx.roundRect(barX - 16, ry, barW + 32, railH, 5);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Tube chrome endcaps with dome nuts
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(barX - 16, ry + railH / 2, 4, 0, Math.PI * 2);
+        ctx.arc(barX + barW + 16, ry + railH / 2, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Left and Right elevated chrome beacon turret bases
+      const leftTurretX = barX + barW * 0.15;
+      const rightTurretX = barX + barW * 0.85;
+      const turretW = barW * 0.28;
+
+      [leftTurretX, rightTurretX].forEach((tx) => {
+        const tGrad = ctx.createLinearGradient(tx - turretW / 2, 0, tx + turretW / 2, 0);
+        tGrad.addColorStop(0, '#4b5563');
+        tGrad.addColorStop(0.3, '#ffffff');
+        tGrad.addColorStop(0.7, '#d1d5db');
+        tGrad.addColorStop(1, '#374151');
+
+        // Circular stepped turret platform
+        ctx.fillStyle = tGrad;
+        ctx.beginPath();
+        ctx.roundRect(tx - turretW / 2, barY + barH - 4, turretW, 16, 4);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // Inner turret turntable
+        ctx.fillStyle = '#111317';
+        ctx.fillRect(tx - turretW / 2 + 4, barY + barH * 0.78, turretW - 8, barH * 0.2);
+      });
+
+      // Center Iconic Federal Q2B Mechanical Siren!
+      if (config.structure.speakerCenter === 'mechanical_siren') {
+        const sirenCx = barX + barW / 2;
+        const sirenCy = barY + barH * 0.58;
+        const sirenRadius = Math.min(46, barH * 0.44);
+
+        // Heavy-duty chrome cradle bracket clamping to both tubular rails
+        ctx.fillStyle = '#4b5563';
+        ctx.fillRect(sirenCx - 14, topRailY - 4, 28, btmRailY - topRailY + railH + 6);
+        ctx.strokeStyle = '#000000';
+        ctx.strokeRect(sirenCx - 14, topRailY - 4, 28, btmRailY - topRailY + railH + 6);
+
+        // Flared chrome siren acoustic horn bell housing
+        const bellGrad = ctx.createRadialGradient(
+          sirenCx - sirenRadius * 0.3,
+          sirenCy - sirenRadius * 0.3,
+          4,
+          sirenCx,
+          sirenCy,
+          sirenRadius
+        );
+        bellGrad.addColorStop(0, '#ffffff');
+        bellGrad.addColorStop(0.4, '#e5e7eb');
+        bellGrad.addColorStop(0.75, '#9ca3af');
+        bellGrad.addColorStop(1, '#374151');
+
+        ctx.fillStyle = bellGrad;
+        ctx.beginPath();
+        ctx.arc(sirenCx, sirenCy, sirenRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#1f2937';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Flared outer chrome rim lip
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(sirenCx, sirenCy, sirenRadius - 2, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Dark siren intake throat chamber
+        ctx.fillStyle = '#09090b';
+        ctx.beginPath();
+        ctx.arc(sirenCx, sirenCy, sirenRadius * 0.72, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Spinning mechanical siren rotor blades / stator ports
+        ctx.strokeStyle = '#4b5563';
+        ctx.lineWidth = 2;
+        for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) {
+          ctx.beginPath();
+          ctx.moveTo(sirenCx + Math.cos(a) * (sirenRadius * 0.32), sirenCy + Math.sin(a) * (sirenRadius * 0.32));
+          ctx.lineTo(sirenCx + Math.cos(a) * (sirenRadius * 0.70), sirenCy + Math.sin(a) * (sirenRadius * 0.70));
+          ctx.stroke();
+        }
+
+        // Center aerodynamic chrome bullet nose cone
+        const coneRadius = sirenRadius * 0.34;
+        const coneGrad = ctx.createRadialGradient(
+          sirenCx - coneRadius * 0.3,
+          sirenCy - coneRadius * 0.3,
+          2,
+          sirenCx,
+          sirenCy,
+          coneRadius
+        );
+        coneGrad.addColorStop(0, '#ffffff');
+        coneGrad.addColorStop(0.45, '#d1d5db');
+        coneGrad.addColorStop(0.85, '#6b7280');
+        coneGrad.addColorStop(1, '#1f2937');
+
+        ctx.fillStyle = coneGrad;
+        ctx.beginPath();
+        ctx.arc(sirenCx, sirenCy, coneRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Specular chrome glint on nose
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.beginPath();
+        ctx.arc(sirenCx - coneRadius * 0.35, sirenCy - coneRadius * 0.35, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+    } else if (sType === 'mini_bar') {
+      // Compact Mini-Bar Extrusion Frame with Center Diamond Mirror
+      const trayH = 15;
+      const trayY = barY + barH;
+
+      ctx.fillStyle = createMetalGrad(barX, trayY, barX + barW, trayY + trayH);
+      ctx.fillRect(barX - 4, trayY, barW + 8, trayH);
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(barX - 4, trayY, barW + 8, trayH);
+
+      // Inner backplane
+      ctx.fillStyle = '#18181b';
+      ctx.fillRect(barX, barY, barW, barH);
+
+      // Center dual-sided 45° diamond mirror reflector to bounce lateral light
+      const mirW = barW * 0.12;
+      const mirX = barX + (barW - mirW) / 2;
+      const mirGrad = ctx.createLinearGradient(mirX, 0, mirX + mirW, 0);
+      mirGrad.addColorStop(0, '#374151');
+      mirGrad.addColorStop(0.3, '#f3f4f6');
+      mirGrad.addColorStop(0.5, '#ffffff');
+      mirGrad.addColorStop(0.7, '#d1d5db');
+      mirGrad.addColorStop(1, '#4b5563');
+
+      ctx.fillStyle = mirGrad;
+      ctx.beginPath();
+      ctx.moveTo(mirX + mirW / 2, barY + 4);
+      ctx.lineTo(mirX + mirW, barY + barH - 4);
+      ctx.lineTo(mirX, barY + barH - 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#111827';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
     } else {
-      // Black powder-coat
-      trayGrad.addColorStop(0, '#27272a');
-      trayGrad.addColorStop(0.5, '#18181b');
-      trayGrad.addColorStop(1, '#09090b');
-    }
+      // Standard Lightbar Base Extrusion (Rotary Domes, Rigid Bar, Aero Modular)
+      const trayH = 16;
+      const trayY = barY + barH;
 
-    // Base extrusion plate
-    ctx.fillStyle = trayGrad;
-    ctx.fillRect(barX - 6, trayY, barW + 12, trayH);
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(barX - 6, trayY, barW + 12, trayH);
+      ctx.fillStyle = createMetalGrad(0, trayY, 0, trayY + trayH);
+      ctx.fillRect(barX - 6, trayY, barW + 12, trayH);
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(barX - 6, trayY, barW + 12, trayH);
 
-    // Inner back wall of housing behind domes (mirrored or matte)
-    const backGrad = ctx.createLinearGradient(0, barY, 0, barY + barH);
-    backGrad.addColorStop(0, '#111317');
-    backGrad.addColorStop(0.5, '#1c1f26');
-    backGrad.addColorStop(1, '#0d0f12');
-    ctx.fillStyle = backGrad;
-    ctx.fillRect(barX, barY, barW, barH);
+      // Inner back wall of housing behind domes (mirrored or matte)
+      const backGrad = ctx.createLinearGradient(0, barY, 0, barY + barH);
+      backGrad.addColorStop(0, '#111317');
+      backGrad.addColorStop(0.5, '#1c1f26');
+      backGrad.addColorStop(1, '#0d0f12');
+      ctx.fillStyle = backGrad;
+      ctx.fillRect(barX, barY, barW, barH);
 
-    // Center speaker grille if configured
-    if (config.structure.speakerCenter !== 'none') {
-      const centerDome = config.domes.find((d) => d.id.includes('speaker') || d.id.includes('center'));
-      if (centerDome) {
-        const spkX = barX + centerDome.startX * barW;
-        const spkW = (centerDome.endX - centerDome.startX) * barW;
+      // Center speaker grille if configured
+      if (config.structure.speakerCenter !== 'none') {
+        const centerDome = config.domes.find((d) => d.id.includes('speaker') || d.id.includes('center'));
+        if (centerDome) {
+          const spkX = barX + centerDome.startX * barW;
+          const spkW = (centerDome.endX - centerDome.startX) * barW;
 
-        ctx.fillStyle = '#1e232b';
-        ctx.fillRect(spkX, barY + 2, spkW, barH - 4);
+          ctx.fillStyle = '#1e232b';
+          ctx.fillRect(spkX, barY + 2, spkW, barH - 4);
 
-        if (config.structure.speakerCenter === 'vintage_mesh') {
-          // Perforated stainless steel speaker mesh
-          ctx.fillStyle = '#9ca3af';
-          ctx.fillRect(spkX + 4, barY + 4, spkW - 8, barH - 8);
+          if (config.structure.speakerCenter === 'vintage_mesh') {
+            // Perforated stainless steel speaker mesh
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(spkX + 4, barY + 4, spkW - 8, barH - 8);
 
-          ctx.fillStyle = '#111827';
-          const dotSpacing = 7;
-          for (let px = spkX + 8; px < spkX + spkW - 8; px += dotSpacing) {
-            for (let py = barY + 8; py < barY + barH - 8; py += dotSpacing) {
-              ctx.beginPath();
-              ctx.arc(px, py, 1.4, 0, Math.PI * 2);
-              ctx.fill();
+            ctx.fillStyle = '#111827';
+            const dotSpacing = 7;
+            for (let px = spkX + 8; px < spkX + spkW - 8; px += dotSpacing) {
+              for (let py = barY + 8; py < barY + barH - 8; py += dotSpacing) {
+                ctx.beginPath();
+                ctx.arc(px, py, 1.4, 0, Math.PI * 2);
+                ctx.fill();
+              }
             }
-          }
-        } else {
-          // Slotted horizontal louvers
-          ctx.fillStyle = '#374151';
-          const slotH = 4;
-          const slotGap = 6;
-          for (let py = barY + 8; py < barY + barH - 8; py += slotH + slotGap) {
-            ctx.fillRect(spkX + 8, py, spkW - 16, slotH);
+          } else if (config.structure.speakerCenter === 'slit_plate') {
+            // Slotted horizontal louvers
+            ctx.fillStyle = '#374151';
+            const slotH = 4;
+            const slotGap = 6;
+            for (let py = barY + 8; py < barY + barH - 8; py += slotH + slotGap) {
+              ctx.fillRect(spkX + 8, py, spkW - 16, slotH);
+            }
           }
         }
       }
@@ -885,39 +1331,63 @@ export class LightbarRenderer {
   ) {
     ctx.save();
 
+    const sType = config.structure.type;
+    const vAngleFactor = (config.structure.vAngleDeg || 24) / 24;
+
     config.domes.forEach((dome) => {
       const domeX = barX + dome.startX * barW;
       const domeW = (dome.endX - dome.startX) * barW;
       if (domeW <= 0) return;
 
+      const podNormX = (dome.startX + dome.endX) / 2;
+      const vY = sType === 'v_bar' ? (1 - 2 * Math.abs(podNormX - 0.5)) * barH * 0.32 * vAngleFactor : 0;
+      const domeY = barY + vY;
+
       const rgb = hexToRgb(dome.color);
       const isLeftEnd = dome.startX < 0.05;
       const isRightEnd = dome.endX > 0.95;
-      const cornerRadius = config.structure.type === 'rotary_domes' ? 14 : config.structure.type === 'aero_modular' ? 22 : 6;
+
+      let radii: [number, number, number, number];
+      if (sType === 'cylindrical_beacon') {
+        const topRadius = domeW * 0.46;
+        radii = [topRadius, topRadius, 4, 4];
+      } else if (sType === 'teardrop_beacon') {
+        radii = [domeW * 0.46, domeW * 0.36, 4, 4];
+      } else if (sType === 'dual_beacon_bridge') {
+        const topRadius = domeW * 0.44;
+        radii = [topRadius, topRadius, 3, 3];
+      } else if (sType === 'mini_bar') {
+        const cr = 10;
+        radii = [isLeftEnd ? cr : 0, isRightEnd ? cr : 0, isRightEnd ? cr * 0.4 : 0, isLeftEnd ? cr * 0.4 : 0];
+      } else if (sType === 'rotary_domes') {
+        const cr = 14;
+        radii = [isLeftEnd ? cr : 0, isRightEnd ? cr : 0, isRightEnd ? cr * 0.4 : 0, isLeftEnd ? cr * 0.4 : 0];
+      } else if (sType === 'aero_modular') {
+        const cr = 22;
+        radii = [isLeftEnd ? cr : 0, isRightEnd ? cr : 0, isRightEnd ? cr * 0.4 : 0, isLeftEnd ? cr * 0.4 : 0];
+      } else {
+        const cr = 6;
+        radii = [isLeftEnd ? cr : 0, isRightEnd ? cr : 0, isRightEnd ? cr * 0.4 : 0, isLeftEnd ? cr * 0.4 : 0];
+      }
 
       ctx.save();
       ctx.beginPath();
       ctx.roundRect(
         domeX,
-        barY,
+        domeY,
         domeW,
         barH,
-        [
-          isLeftEnd ? cornerRadius : 0,
-          isRightEnd ? cornerRadius : 0,
-          isRightEnd ? cornerRadius * 0.4 : 0,
-          isLeftEnd ? cornerRadius * 0.4 : 0,
-        ]
+        radii
       );
       ctx.clip();
 
       // 1. Base glass substrate gradient
-      const domeGrad = ctx.createLinearGradient(0, barY, 0, barY + barH);
+      const domeGrad = ctx.createLinearGradient(0, domeY, 0, domeY + barH);
       domeGrad.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${Math.min(0.9, dome.opacity * 0.7)})`);
       domeGrad.addColorStop(0.5, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${Math.min(0.9, dome.opacity * 0.5)})`);
       domeGrad.addColorStop(1, `rgba(${Math.floor(rgb.r * 0.7)}, ${Math.floor(rgb.g * 0.7)}, ${Math.floor(rgb.b * 0.7)}, ${Math.min(0.95, dome.opacity * 0.85)})`);
       ctx.fillStyle = domeGrad;
-      ctx.fillRect(domeX, barY, domeW, barH);
+      ctx.fillRect(domeX, domeY, domeW, barH);
 
       // Light Interaction within this dome section
       const domeFlares = flares.filter((f) => f.x >= domeX - 40 && f.x <= domeX + domeW + 40);
@@ -1126,33 +1596,100 @@ export class LightbarRenderer {
 
       // Top edge glass specular reflection (unlit physical highlight)
       ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-      ctx.fillRect(domeX, barY, domeW, 1.8);
+      ctx.fillRect(domeX, domeY, domeW, 1.8);
 
-      // Section border gasket seal (black rubber partition)
-      ctx.fillStyle = '#09090b';
-      ctx.fillRect(domeX - 1.5, barY, 3, barH);
-      ctx.fillRect(domeX + domeW - 1.5, barY, 3, barH);
+      // Section border gasket seal (black rubber partition) - only between contiguous sections
+      if (sType !== 'dual_beacon_bridge' && sType !== 'cylindrical_beacon' && sType !== 'teardrop_beacon') {
+        ctx.fillStyle = '#09090b';
+        ctx.fillRect(domeX - 1.5, domeY, 3, barH);
+        ctx.fillRect(domeX + domeW - 1.5, domeY, 3, barH);
+      }
 
       ctx.restore();
     });
 
-    // Outer border of entire glass assembly
+    // Outer border & acrylic highlight of glass assembly
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.75)';
     ctx.lineWidth = 2;
-    const outerRadius = config.structure.type === 'rotary_domes' ? 14 : config.structure.type === 'aero_modular' ? 22 : 6;
-    ctx.beginPath();
-    ctx.roundRect(barX, barY, barW, barH, outerRadius);
-    ctx.stroke();
 
-    // Curved acrylic top specular reflection streak
-    const specGrad = ctx.createLinearGradient(0, barY, 0, barY + 12);
-    specGrad.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
-    specGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.15)');
-    specGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    ctx.fillStyle = specGrad;
-    ctx.beginPath();
-    ctx.roundRect(barX + 6, barY + 2, barW - 12, 10, [outerRadius * 0.8, outerRadius * 0.8, 0, 0]);
-    ctx.fill();
+    if (sType === 'cylindrical_beacon') {
+      const topRad = barW * 0.46;
+      ctx.beginPath();
+      ctx.roundRect(barX, barY, barW, barH, [topRad, topRad, 4, 4]);
+      ctx.stroke();
+
+      // Curved acrylic dome top specular reflection
+      const specGrad = ctx.createRadialGradient(barX + barW * 0.38, barY + topRad * 0.4, 2, barX + barW * 0.38, barY + topRad * 0.4, topRad);
+      specGrad.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
+      specGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.2)');
+      specGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = specGrad;
+      ctx.beginPath();
+      ctx.ellipse(barX + barW * 0.38, barY + topRad * 0.45, topRad * 0.6, topRad * 0.35, -0.2, 0, Math.PI * 2);
+      ctx.fill();
+
+    } else if (sType === 'teardrop_beacon') {
+      ctx.beginPath();
+      ctx.roundRect(barX, barY, barW, barH, [barW * 0.46, barW * 0.36, 4, 4]);
+      ctx.stroke();
+
+      const specGrad = ctx.createRadialGradient(barX + barW * 0.35, barY + barH * 0.2, 2, barX + barW * 0.35, barY + barH * 0.2, barW * 0.4);
+      specGrad.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
+      specGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = specGrad;
+      ctx.beginPath();
+      ctx.ellipse(barX + barW * 0.35, barY + barH * 0.2, barW * 0.32, barH * 0.18, -0.15, 0, Math.PI * 2);
+      ctx.fill();
+
+    } else if (sType === 'dual_beacon_bridge') {
+      // Outline each beacon dome individually
+      config.domes.forEach((dome) => {
+        const domeX = barX + dome.startX * barW;
+        const domeW = (dome.endX - dome.startX) * barW;
+        const topRad = domeW * 0.44;
+        ctx.beginPath();
+        ctx.roundRect(domeX, barY, domeW, barH, [topRad, topRad, 3, 3]);
+        ctx.stroke();
+
+        // Top glint
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.beginPath();
+        ctx.ellipse(domeX + domeW * 0.4, barY + topRad * 0.45, topRad * 0.5, topRad * 0.28, -0.15, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+    } else if (sType === 'v_bar') {
+      // Outline each chevron pod individually
+      config.domes.forEach((dome) => {
+        const podNormX = (dome.startX + dome.endX) / 2;
+        const vY = (1 - 2 * Math.abs(podNormX - 0.5)) * barH * 0.32 * vAngleFactor;
+        const domeX = barX + dome.startX * barW;
+        const domeW = (dome.endX - dome.startX) * barW;
+        ctx.beginPath();
+        ctx.roundRect(domeX, barY + vY, domeW, barH, 4);
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.fillRect(domeX + 2, barY + vY + 2, domeW - 4, 3);
+      });
+
+    } else {
+      // Full bar / Mini-bar
+      const outerRadius = sType === 'rotary_domes' ? 14 : sType === 'aero_modular' ? 22 : sType === 'mini_bar' ? 10 : 6;
+      ctx.beginPath();
+      ctx.roundRect(barX, barY, barW, barH, outerRadius);
+      ctx.stroke();
+
+      // Curved acrylic top specular reflection streak
+      const specGrad = ctx.createLinearGradient(0, barY, 0, barY + 12);
+      specGrad.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
+      specGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.15)');
+      specGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = specGrad;
+      ctx.beginPath();
+      ctx.roundRect(barX + 6, barY + 2, barW - 12, 10, [outerRadius * 0.8, outerRadius * 0.8, 0, 0]);
+      ctx.fill();
+    }
 
     ctx.restore();
   }

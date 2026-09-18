@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Wrench, Eye, Sun, Sparkles, Sliders } from 'lucide-react';
+import { Box, Sparkles } from 'lucide-react';
 import { BaseStructureType, LightbarConfig, RenderSettings } from '../types';
 
 interface StructureSettingsProps {
@@ -22,53 +22,96 @@ export const StructureSettings: React.FC<StructureSettingsProps> = ({
   };
 
   return (
-    <div className="bg-zinc-900/90 border border-zinc-800 rounded-xl p-4 space-y-4">
+    <div className="bg-zinc-950 border border-zinc-800 p-2.5 space-y-2 text-xs font-mono select-none rounded-none">
       {/* Header */}
-      <div className="flex items-center gap-2 pb-2 border-b border-zinc-800/80">
-        <Box className="w-4 h-4 text-emerald-400" />
-        <h2 className="text-sm font-semibold text-zinc-100">
-          Base Structure & Optical Post-Processing
-        </h2>
+      <div className="flex items-center justify-between border-b border-zinc-800 pb-1.5">
+        <div className="flex items-center gap-2">
+          <Box className="w-3.5 h-3.5 text-emerald-500" />
+          <span className="font-bold text-zinc-200 text-[11px]">
+            PHYSICAL CHASSIS & RASTER OPTICS
+          </span>
+        </div>
+        <span className="text-[10px] text-zinc-500">
+          {structure.widthMm}mm × {structure.heightMm}mm
+        </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {/* Left Column: Physical Chassis & Mounting */}
-        <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-lg p-3 space-y-3">
-          <span className="text-xs font-semibold text-zinc-200 flex items-center gap-1.5">
-            <Wrench className="w-3.5 h-3.5 text-zinc-400" />
-            Physical Chassis & Mounting
+        <div className="border border-zinc-800 bg-zinc-900/60 p-2 space-y-2">
+          <span className="text-[10px] font-bold text-zinc-400 block border-b border-zinc-800 pb-1">
+            CHASSIS ARCHITECTURE & MOUNTS
           </span>
 
           {/* Base Structure Type */}
-          <div className="space-y-1">
-            <label className="text-xs text-zinc-400 block">Base Structure Type:</label>
+          <div className="space-y-0.5">
+            <span className="text-zinc-500 text-[9px]">STRUCTURE PROFILE</span>
             <select
               id="structure-type-select"
               value={structure.type}
               onChange={(e) =>
                 handleStructureChange({ type: e.target.value as BaseStructureType })
               }
-              className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1.5 text-xs text-zinc-200 font-medium focus:outline-none cursor-pointer"
+              className="w-full bg-black border border-zinc-700 px-1.5 py-0.5 text-zinc-200 text-[11px] font-mono focus:outline-none focus:border-amber-500 cursor-pointer rounded-none"
             >
-              <option value="cylindrical_beacon">Cylindrical Beacon (Federal Model 17 / 184 Ray)</option>
-              <option value="teardrop_beacon">Teardrop Pod Beacon (Kojak / Mars 888 Skybolt)</option>
-              <option value="v_bar">Forward-Swept V-Bar (Federal Vector / Vision 7-Pod)</option>
-              <option value="dual_beacon_bridge">Twin Beacon Bridge with Q2B Siren (1960s Classic)</option>
-              <option value="mini_bar">Compact Utility Mini-Bar (Dual Rotator / Tow Spec)</option>
+              <option value="cylindrical_beacon">Cylindrical Beacon (Model 17 / 184 Ray)</option>
+              <option value="teardrop_beacon">Teardrop Pod Beacon (Kojak / Mars 888)</option>
+              <option value="v_bar">Forward-Swept V-Bar (Vector / Vision 7-Pod)</option>
+              <option value="dual_beacon_bridge">Twin Beacon Bridge with Center Siren</option>
+              <option value="mini_bar">Compact Utility Mini-Bar (Tow / Escort)</option>
               <option value="rotary_domes">Rotary Lightbar with Domes (Vintage Twin)</option>
               <option value="rigid_bar">Rigid Metal Extrusion Bar (Modular Pods)</option>
               <option value="aero_modular">Aerodynamic Continuous Contoured Housing</option>
             </select>
           </div>
 
+          {/* Width & Height MM */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-0.5">
+              <div className="flex justify-between text-[9px] text-zinc-400">
+                <span>WIDTH (MM)</span>
+                <span className="text-zinc-200 font-bold">{structure.widthMm}</span>
+              </div>
+              <input
+                type="range"
+                min={300}
+                max={2200}
+                step={25}
+                value={structure.widthMm}
+                onChange={(e) =>
+                  handleStructureChange({ widthMm: parseInt(e.target.value, 10) })
+                }
+                className="w-full h-1 bg-zinc-800 appearance-none cursor-pointer accent-emerald-500 rounded-none"
+              />
+            </div>
+
+            <div className="space-y-0.5">
+              <div className="flex justify-between text-[9px] text-zinc-400">
+                <span>HEIGHT (MM)</span>
+                <span className="text-zinc-200 font-bold">{structure.heightMm}</span>
+              </div>
+              <input
+                type="range"
+                min={80}
+                max={350}
+                step={10}
+                value={structure.heightMm}
+                onChange={(e) =>
+                  handleStructureChange({ heightMm: parseInt(e.target.value, 10) })
+                }
+                className="w-full h-1 bg-zinc-800 appearance-none cursor-pointer accent-emerald-500 rounded-none"
+              />
+            </div>
+          </div>
+
           {/* Frame Finish & Speaker Center */}
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div>
-              <span className="text-zinc-400 block mb-1">Frame Tray Finish</span>
+          <div className="grid grid-cols-2 gap-2 text-[10px]">
+            <div className="space-y-0.5">
+              <span className="text-zinc-500 text-[9px]">FRAME FINISH</span>
               <select
                 value={structure.frameFinish}
                 onChange={(e) => handleStructureChange({ frameFinish: e.target.value as any })}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-200 cursor-pointer"
+                className="w-full bg-black border border-zinc-700 px-1 py-0.5 text-zinc-200 font-mono text-[10px] cursor-pointer rounded-none"
               >
                 <option value="chrome">Polished Chrome</option>
                 <option value="stainless_tubular">Stainless Tubular Rails</option>
@@ -76,31 +119,32 @@ export const StructureSettings: React.FC<StructureSettingsProps> = ({
                 <option value="brushed_aluminum">Brushed Aluminum</option>
               </select>
             </div>
-            <div>
-              <span className="text-zinc-400 block mb-1">Center Siren Speaker</span>
+
+            <div className="space-y-0.5">
+              <span className="text-zinc-500 text-[9px]">CENTER SPEAKER GRILL</span>
               <select
                 value={structure.speakerCenter}
                 onChange={(e) => handleStructureChange({ speakerCenter: e.target.value as any })}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-200 cursor-pointer"
+                className="w-full bg-black border border-zinc-700 px-1 py-0.5 text-zinc-200 font-mono text-[10px] cursor-pointer rounded-none"
               >
                 <option value="vintage_mesh">Perforated Mesh</option>
                 <option value="slit_plate">Slotted Louver</option>
-                <option value="mechanical_siren">Mechanical Q2B Siren (Chrome Bullet)</option>
-                <option value="none">None (Full Lens / Beacon)</option>
+                <option value="mechanical_siren">Mechanical Q2B Siren</option>
+                <option value="none">None (Full Lens)</option>
               </select>
             </div>
           </div>
 
           {/* Mounting Feet */}
-          <div className="text-xs">
-            <span className="text-zinc-400 block mb-1">Vehicle Roof Mountings</span>
+          <div className="space-y-0.5">
+            <span className="text-zinc-500 text-[9px]">ROOF MOUNT FEET</span>
             <select
               value={structure.mountingFeet}
               onChange={(e) => handleStructureChange({ mountingFeet: e.target.value as any })}
-              className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-200 cursor-pointer"
+              className="w-full bg-black border border-zinc-700 px-1 py-0.5 text-zinc-200 font-mono text-[10px] cursor-pointer rounded-none"
             >
-              <option value="pedestal_skirt">Spun Chrome Pedestal Skirt (Beacons)</option>
-              <option value="magnetic_mount">Heavy-Duty Magnetic Mount Pad</option>
+              <option value="pedestal_skirt">Spun Chrome Pedestal Skirt</option>
+              <option value="magnetic_mount">Heavy Magnetic Mount Pad</option>
               <option value="chrome_gutter">Vintage Chrome Gutter Clamps</option>
               <option value="low_profile_strap">Low-Profile Roof Straps</option>
               <option value="heavy_duty">Heavy-Duty Apparatus Feet</option>
@@ -109,22 +153,20 @@ export const StructureSettings: React.FC<StructureSettingsProps> = ({
         </div>
 
         {/* Right Column: Optical Bloom, Coronas & Refraction Sliders */}
-        <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-lg p-3 space-y-3">
-          <span className="text-xs font-semibold text-zinc-200 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            Rasterized Optics & Corona Engine
+        <div className="border border-zinc-800 bg-zinc-900/60 p-2 space-y-2">
+          <span className="text-[10px] font-bold text-amber-400 block border-b border-zinc-800 pb-1">
+            OPTICAL POST-PROCESSING & BLOOM
           </span>
 
           {/* Corona Intensity */}
-          <div className="space-y-1">
-            <div className="flex justify-between text-xs">
-              <span className="text-zinc-300">Halos & Coronas Intensity</span>
-              <span className="font-mono text-amber-400 font-bold">
+          <div className="space-y-0.5">
+            <div className="flex justify-between text-[10px]">
+              <span className="text-zinc-400">CORONA HALOS</span>
+              <span className="text-zinc-200 font-bold font-mono">
                 {renderSettings.coronaIntensity.toFixed(1)}x
               </span>
             </div>
             <input
-              id="corona-intensity-slider"
               type="range"
               min={0}
               max={2.0}
@@ -133,20 +175,19 @@ export const StructureSettings: React.FC<StructureSettingsProps> = ({
               onChange={(e) =>
                 onUpdateRenderSettings({ coronaIntensity: parseFloat(e.target.value) })
               }
-              className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+              className="w-full h-1 bg-zinc-800 appearance-none cursor-pointer accent-amber-500 rounded-none"
             />
           </div>
 
           {/* Bloom Radius */}
-          <div className="space-y-1">
-            <div className="flex justify-between text-xs">
-              <span className="text-zinc-300">Atmospheric Bloom Scattering</span>
-              <span className="font-mono text-zinc-300">
+          <div className="space-y-0.5">
+            <div className="flex justify-between text-[10px]">
+              <span className="text-zinc-400">ATMOSPHERIC BLOOM</span>
+              <span className="text-zinc-200 font-bold font-mono">
                 {renderSettings.bloomRadius.toFixed(1)}x
               </span>
             </div>
             <input
-              id="bloom-radius-slider"
               type="range"
               min={0.2}
               max={2.0}
@@ -155,20 +196,19 @@ export const StructureSettings: React.FC<StructureSettingsProps> = ({
               onChange={(e) =>
                 onUpdateRenderSettings({ bloomRadius: parseFloat(e.target.value) })
               }
-              className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-zinc-400"
+              className="w-full h-1 bg-zinc-800 appearance-none cursor-pointer accent-amber-500 rounded-none"
             />
           </div>
 
           {/* Refraction Strength */}
-          <div className="space-y-1">
-            <div className="flex justify-between text-xs">
-              <span className="text-zinc-300">Glass Refraction Flare Strength</span>
-              <span className="font-mono text-cyan-400 font-bold">
+          <div className="space-y-0.5">
+            <div className="flex justify-between text-[10px]">
+              <span className="text-zinc-400">POLYCARBONATE REFRACTION</span>
+              <span className="text-zinc-200 font-bold font-mono">
                 {renderSettings.refractionStrength.toFixed(1)}x
               </span>
             </div>
             <input
-              id="refraction-strength-slider"
               type="range"
               min={0}
               max={2.0}
@@ -177,77 +217,41 @@ export const StructureSettings: React.FC<StructureSettingsProps> = ({
               onChange={(e) =>
                 onUpdateRenderSettings({ refractionStrength: parseFloat(e.target.value) })
               }
-              className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+              className="w-full h-1 bg-zinc-800 appearance-none cursor-pointer accent-amber-500 rounded-none"
             />
           </div>
 
           {/* Toggles */}
-          <div className="pt-2 border-t border-zinc-800 space-y-2 text-xs text-zinc-300">
-            <label className="flex items-center justify-between cursor-pointer">
-              <span className="text-zinc-200">Enable Halos & Coronas</span>
+          <div className="border-t border-zinc-800 pt-1.5 space-y-1 text-[10px]">
+            <label className="flex items-center justify-between cursor-pointer text-zinc-300">
+              <span>ENABLE CORONAS</span>
               <input
-                id="toggle-halos-checkbox"
                 type="checkbox"
                 checked={renderSettings.enableHalos !== false}
                 onChange={(e) => onUpdateRenderSettings({ enableHalos: e.target.checked })}
-                className="rounded border-zinc-700 text-amber-500 focus:ring-0 focus:ring-offset-0 bg-zinc-800 cursor-pointer"
+                className="cursor-pointer accent-amber-500 rounded-none"
               />
             </label>
-            <label className="flex items-center justify-between cursor-pointer">
-              <div>
-                <div className="text-zinc-200">Opt-in Lens Flare Effects</div>
-                <div className="text-[11px] text-zinc-500">Includes upward shine, underlight, streaks & spikes</div>
-              </div>
+
+            <label className="flex items-center justify-between cursor-pointer text-zinc-300">
+              <span>UPWARD SHINE (FOG BEAMS)</span>
               <input
-                id="toggle-lens-flares-checkbox"
                 type="checkbox"
-                checked={Boolean(renderSettings.enableLensFlares)}
-                onChange={(e) => {
-                  const enabled = e.target.checked;
-                  onUpdateRenderSettings({
-                    enableLensFlares: enabled,
-                    lensDirt: enabled,
-                    showBeamsInAir: enabled,
-                    roofReflection: enabled,
-                  });
-                }}
-                className="rounded border-zinc-700 text-cyan-500 focus:ring-0 focus:ring-offset-0 bg-zinc-800 cursor-pointer"
+                checked={renderSettings.showBeamsInAir}
+                onChange={(e) => onUpdateRenderSettings({ showBeamsInAir: e.target.checked })}
+                className="cursor-pointer accent-amber-500 rounded-none"
               />
             </label>
-            {renderSettings.enableLensFlares && (
-              <div className="pl-3 border-l-2 border-cyan-500/30 space-y-2 pt-1 text-xs">
-                <label className="flex items-center justify-between cursor-pointer text-zinc-300">
-                  <span>Upward Shine (Fog Beams)</span>
-                  <input
-                    id="toggle-beams-in-air-checkbox"
-                    type="checkbox"
-                    checked={renderSettings.showBeamsInAir}
-                    onChange={(e) => onUpdateRenderSettings({ showBeamsInAir: e.target.checked })}
-                    className="rounded border-zinc-700 text-cyan-500 focus:ring-0 focus:ring-offset-0 bg-zinc-800 cursor-pointer"
-                  />
-                </label>
-                <label className="flex items-center justify-between cursor-pointer text-zinc-300">
-                  <span>Underlight (Roof Reflection Pool)</span>
-                  <input
-                    id="toggle-roof-reflection-checkbox"
-                    type="checkbox"
-                    checked={renderSettings.roofReflection}
-                    onChange={(e) => onUpdateRenderSettings({ roofReflection: e.target.checked })}
-                    className="rounded border-zinc-700 text-cyan-500 focus:ring-0 focus:ring-offset-0 bg-zinc-800 cursor-pointer"
-                  />
-                </label>
-                <label className="flex items-center justify-between cursor-pointer text-zinc-400">
-                  <span>Camera Lens Dust / Particles</span>
-                  <input
-                    id="toggle-lens-dirt-checkbox"
-                    type="checkbox"
-                    checked={renderSettings.lensDirt}
-                    onChange={(e) => onUpdateRenderSettings({ lensDirt: e.target.checked })}
-                    className="rounded border-zinc-700 text-cyan-500 focus:ring-0 focus:ring-offset-0 bg-zinc-800 cursor-pointer"
-                  />
-                </label>
-              </div>
-            )}
+
+            <label className="flex items-center justify-between cursor-pointer text-zinc-300">
+              <span>UNDERLIGHT ROOF REFLECTION</span>
+              <input
+                type="checkbox"
+                checked={renderSettings.roofReflection}
+                onChange={(e) => onUpdateRenderSettings({ roofReflection: e.target.checked })}
+                className="cursor-pointer accent-amber-500 rounded-none"
+              />
+            </label>
           </div>
         </div>
       </div>

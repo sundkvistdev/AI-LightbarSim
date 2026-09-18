@@ -4,58 +4,62 @@ import {
   Plus,
   Trash2,
   Copy,
-  Flame,
-  Zap,
+  ChevronLeft,
+  ChevronRight,
+  Power,
   RotateCw,
-  Gauge,
-  Thermometer,
-  Shield,
-  Palette,
+  Zap,
 } from 'lucide-react';
-import { ElementType, LightElement, SyncGroup } from '../types';
+import {
+  LightElement,
+  ElementType,
+  SyncGroup,
+  RotatorConfig,
+  HalogenFlasherConfig,
+  XenonStrobeConfig,
+  LedConfig,
+} from '../types';
 
 interface ElementEditorProps {
   elements: LightElement[];
-  onUpdateElements: (elements: LightElement[]) => void;
   selectedElementId: string | null;
   onSelectElement: (id: string) => void;
+  onUpdateElements: (elements: LightElement[]) => void;
 }
 
 export const ElementEditor: React.FC<ElementEditorProps> = ({
   elements,
-  onUpdateElements,
   selectedElementId,
   onSelectElement,
+  onUpdateElements,
 }) => {
   const activeElement =
-    elements.find((e) => e.id === selectedElementId) || elements[0] || null;
+    elements.find((e) => e.id === selectedElementId) || elements[0];
 
   const handleUpdateActive = (updated: Partial<LightElement>) => {
     if (!activeElement) return;
-    const next = elements.map((e) => (e.id === activeElement.id ? { ...e, ...updated } : e));
-    onUpdateElements(next);
+    const newElements = elements.map((e) =>
+      e.id === activeElement.id ? { ...e, ...updated } : e
+    );
+    onUpdateElements(newElements);
   };
 
   const handleAddElement = () => {
     const newId = `elem_${Date.now()}`;
-    const newElem: LightElement = {
+    const newElement: LightElement = {
       id: newId,
-      name: `Rotator ${elements.length + 1}`,
+      name: `Emitter ${elements.length + 1}`,
       type: 'rotating_halogen',
       xNorm: 0.5,
       yNorm: 0.0,
       subglassColor: null,
       brightness: 1.4,
-      wear: {
-        fadeWear: 0.1,
-        reflectorTarnish: 0.1,
-        jitter: 0.01,
-      },
       syncGroup: 'A',
       enabled: true,
+      wear: { fadeWear: 0.05, reflectorTarnish: 0.05, jitter: 0.01 },
       rotator: {
         rpm: 90,
-        beamSpreadDeg: 26,
+        beamSpreadDeg: 24,
         rotationDirection: 1,
         phaseOffsetDeg: 0,
         reflectorType: 'parabolic_dish',
@@ -64,7 +68,7 @@ export const ElementEditor: React.FC<ElementEditorProps> = ({
         reflectorFinish: 'chrome',
       },
     };
-    onUpdateElements([...elements, newElem]);
+    onUpdateElements([...elements, newElement]);
     onSelectElement(newId);
   };
 
@@ -75,7 +79,7 @@ export const ElementEditor: React.FC<ElementEditorProps> = ({
       ...JSON.parse(JSON.stringify(activeElement)),
       id: newId,
       name: `${activeElement.name} (Copy)`,
-      xNorm: Math.min(0.95, activeElement.xNorm + 0.08),
+      xNorm: Math.min(0.95, activeElement.xNorm + 0.06),
     };
     onUpdateElements([...elements, duplicated]);
     onSelectElement(newId);
@@ -83,9 +87,15 @@ export const ElementEditor: React.FC<ElementEditorProps> = ({
 
   const handleDelete = () => {
     if (!activeElement || elements.length <= 1) return;
-    const next = elements.filter((e) => e.id !== activeElement.id);
-    onUpdateElements(next);
-    onSelectElement(next[0].id);
+    const filtered = elements.filter((e) => e.id !== activeElement.id);
+    onUpdateElements(filtered);
+    onSelectElement(filtered[0].id);
+  };
+
+  const handleMoveX = (delta: number) => {
+    if (!activeElement) return;
+    const newX = Math.max(0.02, Math.min(0.98, activeElement.xNorm + delta));
+    handleUpdateActive({ xNorm: newX });
   };
 
   const handleTypeChange = (newType: ElementType) => {
@@ -105,14 +115,14 @@ export const ElementEditor: React.FC<ElementEditorProps> = ({
       };
     } else if (newType === 'static_halogen' && !activeElement.halogen) {
       updated.halogen = {
-        filamentThermalRiseMs: 70,
-        filamentThermalFallMs: 140,
+        filamentThermalRiseMs: 60,
+        filamentThermalFallMs: 120,
         wattage: 55,
         bulbShape: 'h1',
       };
     } else if (newType === 'xenon_strobe' && !activeElement.strobe) {
       updated.strobe = {
-        joules: 15,
+        joules: 14,
         flashDurationMs: 8,
         burstPattern: 'double',
         gasTint: '#e0f2fe',
@@ -130,96 +140,94 @@ export const ElementEditor: React.FC<ElementEditorProps> = ({
   if (!activeElement) return null;
 
   return (
-    <div className="bg-zinc-900/90 border border-zinc-800 rounded-xl p-4 space-y-4">
-      {/* Header with list & actions */}
-      <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-zinc-800/80">
+    <div className="bg-zinc-950 border border-zinc-800 p-2.5 space-y-2 text-xs font-mono select-none rounded-none">
+      {/* Header bar with count and actions */}
+      <div className="flex items-center justify-between border-b border-zinc-800 pb-1.5 gap-2">
         <div className="flex items-center gap-2">
-          <Lightbulb className="w-4 h-4 text-amber-400" />
-          <h2 className="text-sm font-semibold text-zinc-100">
-            Internal Light Elements & Emitters
-          </h2>
+          <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+          <span className="font-bold text-zinc-200 text-[11px]">
+            LIGHT EMITTERS ({elements.length})
+          </span>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <button
-            id="btn-add-element"
             onClick={handleAddElement}
-            className="flex items-center gap-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs px-2.5 py-1 rounded-lg transition-colors"
-            title="Add New Emitter"
+            className="flex items-center gap-1 px-2 py-0.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 text-[10px] font-bold rounded-none cursor-pointer"
+            title="Add emitter"
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Add</span>
+            <Plus className="w-3 h-3" />
+            <span>ADD</span>
           </button>
           <button
-            id="btn-duplicate-element"
             onClick={handleDuplicate}
-            className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors"
-            title="Duplicate Selected"
+            className="flex items-center gap-1 px-2 py-0.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 text-[10px] font-bold rounded-none cursor-pointer"
+            title="Duplicate emitter"
           >
-            <Copy className="w-3.5 h-3.5" />
+            <Copy className="w-3 h-3" />
+            <span>DUP</span>
           </button>
           <button
-            id="btn-delete-element"
             onClick={handleDelete}
             disabled={elements.length <= 1}
-            className="p-1.5 bg-zinc-800 hover:bg-red-900/60 text-zinc-400 hover:text-red-300 rounded-lg transition-colors disabled:opacity-40"
-            title="Delete Emitter"
+            className="flex items-center gap-1 px-2 py-0.5 bg-zinc-900 hover:bg-red-950 text-zinc-400 hover:text-red-300 border border-zinc-700 hover:border-red-700 text-[10px] font-bold disabled:opacity-30 rounded-none cursor-pointer"
+            title="Delete emitter"
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Trash2 className="w-3 h-3" />
+            <span>DEL</span>
           </button>
         </div>
       </div>
 
-      {/* Elements Pill Carousel */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+      {/* Elements Pill Strip */}
+      <div className="flex items-center gap-1 overflow-x-auto pb-1">
         {elements.map((elem) => {
           const isSelected = elem.id === activeElement.id;
+          const typeDot =
+            elem.type === 'rotating_halogen'
+              ? 'bg-amber-400'
+              : elem.type === 'xenon_strobe'
+              ? 'bg-sky-400'
+              : elem.type === 'static_halogen'
+              ? 'bg-orange-500'
+              : 'bg-emerald-400';
           return (
             <button
               key={elem.id}
-              id={`elem-tab-${elem.id}`}
               onClick={() => onSelectElement(elem.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap font-medium transition-all flex items-center gap-2 border ${
+              className={`flex items-center gap-1.5 px-2 py-1 border text-[10px] font-mono whitespace-nowrap rounded-none cursor-pointer transition-colors ${
                 isSelected
-                  ? 'bg-zinc-800 text-zinc-100 border-zinc-600 shadow-xs'
-                  : 'bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-zinc-200 hover:border-zinc-700'
+                  ? 'bg-zinc-800 text-white border-zinc-500 font-bold'
+                  : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-zinc-200'
               }`}
             >
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  elem.type === 'rotating_halogen'
-                    ? 'bg-amber-400'
-                    : elem.type === 'xenon_strobe'
-                    ? 'bg-cyan-300 shadow-xs shadow-cyan-400'
-                    : elem.type === 'static_halogen'
-                    ? 'bg-orange-500'
-                    : 'bg-emerald-400'
-                }`}
-              />
+              <span className={`w-2 h-2 ${typeDot} ${!elem.enabled ? 'opacity-30' : ''}`} />
               <span>{elem.name}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Element Inspector Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Left Card: General Element Parameters */}
-        <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-lg p-3 space-y-3">
-          {/* Element Name & Type */}
-          <div className="flex items-center gap-2">
+      {/* Active Element Properties */}
+      <div className="border border-zinc-800 bg-zinc-900/60 p-2 space-y-2">
+        {/* Row 1: Name, Type, Enable */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="flex items-center gap-1.5 sm:col-span-1">
+            <span className="text-zinc-400 text-[10px] w-12 shrink-0">NAME:</span>
             <input
-              id="element-name-input"
               type="text"
               value={activeElement.name}
               onChange={(e) => handleUpdateActive({ name: e.target.value })}
-              className="flex-1 bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-100 font-semibold focus:outline-none focus:border-amber-500"
+              className="flex-1 bg-black border border-zinc-700 px-1.5 py-0.5 text-zinc-200 text-xs font-mono focus:outline-none focus:border-amber-500 rounded-none"
             />
+          </div>
+
+          <div className="flex items-center gap-1.5 sm:col-span-1">
+            <span className="text-zinc-400 text-[10px] w-12 shrink-0">TYPE:</span>
             <select
-              id="element-type-select"
               value={activeElement.type}
               onChange={(e) => handleTypeChange(e.target.value as ElementType)}
-              className="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-200 font-medium focus:outline-none cursor-pointer"
+              className="flex-1 bg-black border border-zinc-700 px-1.5 py-0.5 text-zinc-200 text-[11px] font-mono focus:outline-none focus:border-amber-500 cursor-pointer rounded-none"
             >
               <option value="rotating_halogen">Rotating Halogen</option>
               <option value="static_halogen">Static Halogen Flasher</option>
@@ -228,94 +236,89 @@ export const ElementEditor: React.FC<ElementEditorProps> = ({
             </select>
           </div>
 
-          {/* Position X Slider */}
+          <div className="flex items-center justify-between gap-1.5 sm:col-span-1">
+            <button
+              onClick={() => handleUpdateActive({ enabled: !activeElement.enabled })}
+              className={`flex-1 flex items-center justify-center gap-1 py-1 px-2 border font-mono text-[10px] font-bold rounded-none cursor-pointer ${
+                activeElement.enabled
+                  ? 'bg-emerald-950 text-emerald-300 border-emerald-700'
+                  : 'bg-zinc-950 text-zinc-500 border-zinc-800'
+              }`}
+            >
+              <Power className="w-3 h-3" />
+              <span>{activeElement.enabled ? 'POWER ON' : 'DISABLED'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Row 2: Position (X & Y), Micro-nudge buttons */}
+        <div className="grid grid-cols-2 gap-2 border-t border-zinc-800 pt-1.5">
           <div className="space-y-1">
-            <div className="flex justify-between text-xs">
-              <span className="text-zinc-300">Horizontal Position (X)</span>
-              <span className="font-mono text-zinc-300">
-                {Math.round(activeElement.xNorm * 100)}%
-              </span>
+            <div className="flex items-center justify-between text-[10px]">
+              <span className="text-zinc-400">HORIZONTAL X:</span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => handleMoveX(-0.02)}
+                  className="px-1 bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700 text-[9px]"
+                  title="Nudge Left"
+                >
+                  <ChevronLeft className="w-2.5 h-2.5" />
+                </button>
+                <span className="text-zinc-200 font-bold font-mono">
+                  {(activeElement.xNorm * 100).toFixed(1)}%
+                </span>
+                <button
+                  onClick={() => handleMoveX(0.02)}
+                  className="px-1 bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700 text-[9px]"
+                  title="Nudge Right"
+                >
+                  <ChevronRight className="w-2.5 h-2.5" />
+                </button>
+              </div>
             </div>
             <input
-              id="element-x-slider"
               type="range"
-              min={0.05}
-              max={0.95}
+              min={0.02}
+              max={0.98}
               step={0.01}
               value={activeElement.xNorm}
               onChange={(e) => handleUpdateActive({ xNorm: parseFloat(e.target.value) })}
-              className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+              className="w-full h-1 bg-zinc-800 appearance-none cursor-pointer accent-amber-500 rounded-none"
             />
           </div>
 
-          {/* Brightness Multiplier */}
           <div className="space-y-1">
-            <div className="flex justify-between text-xs">
-              <span className="text-zinc-300">Brightness Multiplier</span>
-              <span className="font-mono text-amber-400 font-bold">
-                {activeElement.brightness.toFixed(1)}x
+            <div className="flex justify-between text-[10px]">
+              <span className="text-zinc-400">BRIGHTNESS:</span>
+              <span className="text-zinc-200 font-bold font-mono">
+                {activeElement.brightness.toFixed(2)}x
               </span>
             </div>
             <input
-              id="element-brightness-slider"
               type="range"
               min={0.2}
-              max={2.5}
-              step={0.1}
+              max={3.0}
+              step={0.05}
               value={activeElement.brightness}
               onChange={(e) => handleUpdateActive({ brightness: parseFloat(e.target.value) })}
-              className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+              className="w-full h-1 bg-zinc-800 appearance-none cursor-pointer accent-amber-500 rounded-none"
             />
           </div>
+        </div>
 
-          {/* Subglass Color Filter (Capsule over bulb) */}
-          <div className="flex items-center justify-between text-xs pt-1 border-t border-zinc-800">
-            <span className="text-zinc-300 flex items-center gap-1.5">
-              <Palette className="w-3.5 h-3.5 text-zinc-400" />
-              Bulb Subglass Filter:
-            </span>
-            <div className="flex items-center gap-2">
-              <button
-                id="btn-subglass-clear"
-                onClick={() => handleUpdateActive({ subglassColor: null })}
-                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
-                  activeElement.subglassColor === null
-                    ? 'bg-zinc-700 text-white'
-                    : 'bg-zinc-900 text-zinc-400 hover:text-zinc-200'
-                }`}
-              >
-                Clear
-              </button>
-              <input
-                id="element-subglass-color-picker"
-                type="color"
-                value={activeElement.subglassColor || '#ef4444'}
-                onChange={(e) => handleUpdateActive({ subglassColor: e.target.value })}
-                className="w-5 h-5 rounded border border-zinc-700 cursor-pointer bg-transparent"
-                title="Colored subglass bulb envelope"
-              />
-            </div>
-          </div>
-
-          {/* Sync Group Assignment */}
-          <div className="flex items-center justify-between text-xs pt-1 border-t border-zinc-800">
-            <span className="text-zinc-300">Sequencer Sync Group:</span>
+        {/* Row 3: Sync Group & Subglass Color */}
+        <div className="grid grid-cols-2 gap-2 border-t border-zinc-800 pt-1.5">
+          <div className="space-y-1">
+            <span className="text-zinc-400 text-[10px]">SEQUENCER SYNC GROUP:</span>
             <div className="flex items-center gap-1">
-              {(['A', 'B', 'C', 'STEADY'] as SyncGroup[]).map((grp) => (
+              {(['A', 'B', 'C', 'STEADY', 'INDEPENDENT'] as SyncGroup[]).map((grp) => (
                 <button
                   key={grp}
-                  id={`sync-group-btn-${grp}`}
                   onClick={() => handleUpdateActive({ syncGroup: grp })}
-                  className={`px-2 py-0.5 rounded text-[10px] font-bold transition-colors ${
+                  className={`flex-1 py-0.5 border text-[9px] font-mono font-bold rounded-none cursor-pointer ${
                     activeElement.syncGroup === grp
-                      ? grp === 'A'
-                        ? 'bg-red-600 text-white'
-                        : grp === 'B'
-                        ? 'bg-blue-600 text-white'
-                        : grp === 'C'
-                        ? 'bg-amber-600 text-white'
-                        : 'bg-emerald-600 text-white'
-                      : 'bg-zinc-900 text-zinc-400 hover:text-zinc-200'
+                      ? 'bg-amber-500 text-zinc-950 border-amber-400'
+                      : 'bg-black text-zinc-400 border-zinc-700 hover:text-zinc-200'
                   }`}
                 >
                   {grp}
@@ -323,57 +326,92 @@ export const ElementEditor: React.FC<ElementEditorProps> = ({
               ))}
             </div>
           </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[10px]">
+              <span className="text-zinc-400">SUBGLASS OPTIC INSERT:</span>
+              {activeElement.subglassColor && (
+                <button
+                  onClick={() => handleUpdateActive({ subglassColor: null })}
+                  className="text-zinc-500 hover:text-red-400 text-[9px] underline"
+                >
+                  REMOVE
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              <input
+                type="color"
+                value={activeElement.subglassColor || '#dc2626'}
+                onChange={(e) => handleUpdateActive({ subglassColor: e.target.value })}
+                className="w-4 h-4 border border-zinc-700 cursor-pointer bg-transparent rounded-none"
+              />
+              <input
+                type="text"
+                value={activeElement.subglassColor || 'NONE (RAW)'}
+                onChange={(e) => handleUpdateActive({ subglassColor: e.target.value })}
+                className="flex-1 bg-black border border-zinc-700 px-1 py-0.5 text-zinc-200 text-[10px] font-mono focus:outline-none focus:border-amber-500 rounded-none"
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Right Card: Type Specific Physics & Wear Parameters */}
-        <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-lg p-3 space-y-3">
-          {activeElement.type === 'rotating_halogen' && activeElement.rotator && (
-            <>
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-zinc-200 flex items-center gap-1.5">
-                  <RotateCw className="w-3.5 h-3.5 text-amber-400" />
-                  Rotator Mechanics
-                </span>
-                <span className="font-mono text-amber-400 font-bold">
-                  {activeElement.rotator.rpm} RPM
-                </span>
-              </div>
+        {/* --- TYPE-SPECIFIC MODULES --- */}
 
-              {/* RPM Slider */}
-              <div className="space-y-1">
+        {/* 1. ROTATING HALOGEN CONFIG */}
+        {activeElement.type === 'rotating_halogen' && activeElement.rotator && (
+          <div className="border border-zinc-800 bg-black/60 p-2 space-y-1.5">
+            <div className="flex items-center justify-between text-[10px] font-bold text-amber-400 border-b border-zinc-800 pb-1">
+              <span className="flex items-center gap-1">
+                <RotateCw className="w-3 h-3" />
+                MECHANICAL ROTATOR MOTOR & REFLECTOR
+              </span>
+              <button
+                onClick={() =>
+                  handleUpdateActive({
+                    rotator: {
+                      ...activeElement.rotator!,
+                      rotationDirection: activeElement.rotator!.rotationDirection === 1 ? -1 : 1,
+                    },
+                  })
+                }
+                className="px-1.5 py-0.2 bg-zinc-900 border border-zinc-700 text-zinc-300 hover:text-white text-[9px] cursor-pointer"
+              >
+                DIR: {activeElement.rotator.rotationDirection === 1 ? 'CW' : 'CCW'}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <div className="space-y-0.5">
+                <div className="flex justify-between text-[9px] text-zinc-400">
+                  <span>RPM</span>
+                  <span className="text-zinc-200 font-bold">{activeElement.rotator.rpm}</span>
+                </div>
                 <input
-                  id="rotator-rpm-slider"
                   type="range"
-                  min={40}
-                  max={200}
+                  min={30}
+                  max={240}
                   step={5}
                   value={activeElement.rotator.rpm}
                   onChange={(e) =>
                     handleUpdateActive({
-                      rotator: {
-                        ...activeElement.rotator!,
-                        rpm: parseInt(e.target.value, 10),
-                      },
+                      rotator: { ...activeElement.rotator!, rpm: parseInt(e.target.value, 10) },
                     })
                   }
-                  className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                  className="w-full h-1 bg-zinc-800 appearance-none cursor-pointer accent-amber-500 rounded-none"
                 />
               </div>
 
-              {/* Beam Spread Cone Angle */}
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-zinc-300">Beam Spread Angle</span>
-                  <span className="font-mono text-zinc-300">
-                    {activeElement.rotator.beamSpreadDeg}°
-                  </span>
+              <div className="space-y-0.5">
+                <div className="flex justify-between text-[9px] text-zinc-400">
+                  <span>SPREAD</span>
+                  <span className="text-zinc-200 font-bold">{activeElement.rotator.beamSpreadDeg}°</span>
                 </div>
                 <input
-                  id="rotator-beam-spread-slider"
                   type="range"
-                  min={14}
-                  max={45}
-                  step={1}
+                  min={10}
+                  max={60}
+                  step={2}
                   value={activeElement.rotator.beamSpreadDeg}
                   onChange={(e) =>
                     handleUpdateActive({
@@ -383,82 +421,95 @@ export const ElementEditor: React.FC<ElementEditorProps> = ({
                       },
                     })
                   }
-                  className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-zinc-400"
+                  className="w-full h-1 bg-zinc-800 appearance-none cursor-pointer accent-amber-500 rounded-none"
                 />
               </div>
 
-              {/* Phase Offset & Direction */}
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <span className="text-zinc-400 block mb-1">
-                    Phase: {activeElement.rotator.phaseOffsetDeg}°
-                  </span>
-                  <input
-                    type="range"
-                    min={0}
-                    max={360}
-                    step={15}
-                    value={activeElement.rotator.phaseOffsetDeg}
-                    onChange={(e) =>
-                      handleUpdateActive({
-                        rotator: {
-                          ...activeElement.rotator!,
-                          phaseOffsetDeg: parseInt(e.target.value, 10),
-                        },
-                      })
-                    }
-                    className="w-full h-1 bg-zinc-800 rounded appearance-none cursor-pointer accent-zinc-400"
-                  />
-                </div>
-                <div>
-                  <span className="text-zinc-400 block mb-1">Reflector Dish</span>
-                  <select
-                    value={activeElement.rotator.reflectorType}
-                    onChange={(e) =>
-                      handleUpdateActive({
-                        rotator: {
-                          ...activeElement.rotator!,
-                          reflectorType: e.target.value as any,
-                        },
-                      })
-                    }
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded px-1.5 py-1 text-[11px] text-zinc-200 cursor-pointer"
-                  >
-                    <option value="parabolic_dish">Parabolic Dish</option>
-                    <option value="sealed_beam_par36">Sealed Beam PAR36</option>
-                    <option value="par46">Heavy PAR46</option>
-                    <option value="dual_sided_mirror">Dual-Sided Mirror</option>
-                  </select>
-                </div>
-              </div>
-            </>
-          )}
-
-          {activeElement.type === 'static_halogen' && activeElement.halogen && (
-            <>
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-zinc-200 flex items-center gap-1.5">
-                  <Flame className="w-3.5 h-3.5 text-orange-400" />
-                  Incandescent Thermal Inertia
-                </span>
-                <span className="font-mono text-orange-400 font-bold">
-                  {activeElement.halogen.wattage}W
-                </span>
-              </div>
-
-              {/* Thermal Rise (Warm up ms) */}
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-zinc-300">Filament Thermal Rise</span>
-                  <span className="font-mono text-zinc-300">
-                    {activeElement.halogen.filamentThermalRiseMs} ms
-                  </span>
+              <div className="space-y-0.5">
+                <div className="flex justify-between text-[9px] text-zinc-400">
+                  <span>PHASE</span>
+                  <span className="text-zinc-200 font-bold">{activeElement.rotator.phaseOffsetDeg}°</span>
                 </div>
                 <input
-                  id="filament-rise-slider"
                   type="range"
-                  min={30}
-                  max={150}
+                  min={0}
+                  max={355}
+                  step={5}
+                  value={activeElement.rotator.phaseOffsetDeg}
+                  onChange={(e) =>
+                    handleUpdateActive({
+                      rotator: {
+                        ...activeElement.rotator!,
+                        phaseOffsetDeg: parseInt(e.target.value, 10),
+                      },
+                    })
+                  }
+                  className="w-full h-1 bg-zinc-800 appearance-none cursor-pointer accent-amber-500 rounded-none"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <div className="space-y-0.5">
+                <span className="text-zinc-500 text-[9px]">REFLECTOR DISH</span>
+                <select
+                  value={activeElement.rotator.reflectorType}
+                  onChange={(e) =>
+                    handleUpdateActive({
+                      rotator: {
+                        ...activeElement.rotator!,
+                        reflectorType: e.target.value as RotatorConfig['reflectorType'],
+                      },
+                    })
+                  }
+                  className="w-full bg-black border border-zinc-700 px-1 py-0.5 text-zinc-200 text-[10px] font-mono focus:outline-none focus:border-amber-500 cursor-pointer rounded-none"
+                >
+                  <option value="parabolic_dish">Parabolic Dish</option>
+                  <option value="sealed_beam_par36">PAR-36 Sealed Beam</option>
+                  <option value="par46">PAR-46 Heavy Dish</option>
+                  <option value="dual_sided_mirror">Dual-Sided Mirror</option>
+                </select>
+              </div>
+
+              <div className="space-y-0.5">
+                <span className="text-zinc-500 text-[9px]">FINISH</span>
+                <select
+                  value={activeElement.rotator.reflectorFinish}
+                  onChange={(e) =>
+                    handleUpdateActive({
+                      rotator: {
+                        ...activeElement.rotator!,
+                        reflectorFinish: e.target.value as RotatorConfig['reflectorFinish'],
+                      },
+                    })
+                  }
+                  className="w-full bg-black border border-zinc-700 px-1 py-0.5 text-zinc-200 text-[10px] font-mono focus:outline-none focus:border-amber-500 cursor-pointer rounded-none"
+                >
+                  <option value="chrome">Mirror Chrome</option>
+                  <option value="polished_aluminum">Polished Aluminum</option>
+                  <option value="patina_aged">Aged Patina</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 2. STATIC HALOGEN FLASHER */}
+        {activeElement.type === 'static_halogen' && activeElement.halogen && (
+          <div className="border border-zinc-800 bg-black/60 p-2 space-y-1.5">
+            <span className="text-[10px] font-bold text-orange-400 block border-b border-zinc-800 pb-1">
+              FILAMENT THERMAL INERTIA
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-0.5">
+                <div className="flex justify-between text-[9px] text-zinc-400">
+                  <span>RISE TIME</span>
+                  <span className="text-zinc-200">{activeElement.halogen.filamentThermalRiseMs}ms</span>
+                </div>
+                <input
+                  type="range"
+                  min={10}
+                  max={200}
                   step={5}
                   value={activeElement.halogen.filamentThermalRiseMs}
                   onChange={(e) =>
@@ -469,24 +520,20 @@ export const ElementEditor: React.FC<ElementEditorProps> = ({
                       },
                     })
                   }
-                  className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                  className="w-full h-1 bg-zinc-800 appearance-none cursor-pointer accent-orange-500 rounded-none"
                 />
               </div>
 
-              {/* Thermal Fall (Cool down fade ms) */}
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-zinc-300">Cool-down Ember Fade (Fall)</span>
-                  <span className="font-mono text-zinc-300">
-                    {activeElement.halogen.filamentThermalFallMs} ms
-                  </span>
+              <div className="space-y-0.5">
+                <div className="flex justify-between text-[9px] text-zinc-400">
+                  <span>FALL TIME</span>
+                  <span className="text-zinc-200">{activeElement.halogen.filamentThermalFallMs}ms</span>
                 </div>
                 <input
-                  id="filament-fall-slider"
                   type="range"
-                  min={60}
-                  max={250}
-                  step={10}
+                  min={20}
+                  max={350}
+                  step={5}
                   value={activeElement.halogen.filamentThermalFallMs}
                   onChange={(e) =>
                     handleUpdateActive({
@@ -496,127 +543,136 @@ export const ElementEditor: React.FC<ElementEditorProps> = ({
                       },
                     })
                   }
-                  className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-orange-500"
-                />
-              </div>
-            </>
-          )}
-
-          {activeElement.type === 'xenon_strobe' && activeElement.strobe && (
-            <>
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-zinc-200 flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5 text-cyan-300" />
-                  Xenon Discharge Tube
-                </span>
-                <span className="font-mono text-cyan-300 font-bold">
-                  {activeElement.strobe.joules} Joules
-                </span>
-              </div>
-
-              {/* Joules Discharge Slider */}
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-zinc-300">Capacitor Stored Energy</span>
-                  <span className="font-mono text-zinc-300">
-                    {activeElement.strobe.joules} J
-                  </span>
-                </div>
-                <input
-                  id="strobe-joules-slider"
-                  type="range"
-                  min={5}
-                  max={25}
-                  step={1}
-                  value={activeElement.strobe.joules}
-                  onChange={(e) =>
-                    handleUpdateActive({
-                      strobe: {
-                        ...activeElement.strobe!,
-                        joules: parseInt(e.target.value, 10),
-                      },
-                    })
-                  }
-                  className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-                />
-              </div>
-
-              {/* Burst Pattern */}
-              <div className="flex items-center justify-between text-xs pt-1">
-                <span className="text-zinc-300">Burst Discharge Mode:</span>
-                <select
-                  value={activeElement.strobe.burstPattern}
-                  onChange={(e) =>
-                    handleUpdateActive({
-                      strobe: {
-                        ...activeElement.strobe!,
-                        burstPattern: e.target.value as any,
-                      },
-                    })
-                  }
-                  className="bg-zinc-900 border border-zinc-700 rounded px-2 py-0.5 text-xs text-zinc-200 cursor-pointer"
-                >
-                  <option value="single">Single Pop</option>
-                  <option value="double">Double Flash</option>
-                  <option value="triple">Triple Pop</option>
-                  <option value="quad">Quad Burst</option>
-                </select>
-              </div>
-            </>
-          )}
-
-          {/* Wear & Aging Parameters (Applies to all elements) */}
-          <div className="pt-2 border-t border-zinc-800 space-y-2">
-            <span className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5 text-zinc-400" />
-              Element Aging & Wear
-            </span>
-            <div className="grid grid-cols-2 gap-2 text-[11px]">
-              <div>
-                <span className="text-zinc-400 block mb-1">
-                  Filament Wear: {Math.round(activeElement.wear.fadeWear * 100)}%
-                </span>
-                <input
-                  type="range"
-                  min={0}
-                  max={0.8}
-                  step={0.05}
-                  value={activeElement.wear.fadeWear}
-                  onChange={(e) =>
-                    handleUpdateActive({
-                      wear: {
-                        ...activeElement.wear,
-                        fadeWear: parseFloat(e.target.value),
-                      },
-                    })
-                  }
-                  className="w-full h-1 bg-zinc-800 rounded appearance-none cursor-pointer accent-zinc-400"
-                />
-              </div>
-              <div>
-                <span className="text-zinc-400 block mb-1">
-                  Dish Tarnish: {Math.round(activeElement.wear.reflectorTarnish * 100)}%
-                </span>
-                <input
-                  type="range"
-                  min={0}
-                  max={0.8}
-                  step={0.05}
-                  value={activeElement.wear.reflectorTarnish}
-                  onChange={(e) =>
-                    handleUpdateActive({
-                      wear: {
-                        ...activeElement.wear,
-                        reflectorTarnish: parseFloat(e.target.value),
-                      },
-                    })
-                  }
-                  className="w-full h-1 bg-zinc-800 rounded appearance-none cursor-pointer accent-zinc-400"
+                  className="w-full h-1 bg-zinc-800 appearance-none cursor-pointer accent-orange-500 rounded-none"
                 />
               </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* 3. XENON STROBE TUBE */}
+        {activeElement.type === 'xenon_strobe' && activeElement.strobe && (
+          <div className="border border-zinc-800 bg-black/60 p-2 space-y-1.5">
+            <div className="flex items-center justify-between text-[10px] font-bold text-sky-400 border-b border-zinc-800 pb-1">
+              <span className="flex items-center gap-1">
+                <Zap className="w-3 h-3" />
+                XENON GAS DISCHARGE TUBE
+              </span>
+              <div className="flex items-center gap-1">
+                {(['single', 'double', 'triple', 'quad'] as XenonStrobeConfig['burstPattern'][]).map(
+                  (pat) => (
+                    <button
+                      key={pat}
+                      onClick={() =>
+                        handleUpdateActive({
+                          strobe: { ...activeElement.strobe!, burstPattern: pat },
+                        })
+                      }
+                      className={`px-1.5 py-0.2 border text-[9px] uppercase cursor-pointer ${
+                        activeElement.strobe!.burstPattern === pat
+                          ? 'bg-sky-500 text-black border-sky-400 font-bold'
+                          : 'bg-zinc-900 text-zinc-400 border-zinc-700'
+                      }`}
+                    >
+                      {pat}
+                    </button>
+                  )
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-0.5">
+                <div className="flex justify-between text-[9px] text-zinc-400">
+                  <span>ENERGY (JOULES)</span>
+                  <span className="text-zinc-200">{activeElement.strobe.joules}J</span>
+                </div>
+                <input
+                  type="range"
+                  min={2}
+                  max={35}
+                  step={1}
+                  value={activeElement.strobe.joules}
+                  onChange={(e) =>
+                    handleUpdateActive({
+                      strobe: { ...activeElement.strobe!, joules: parseInt(e.target.value, 10) },
+                    })
+                  }
+                  className="w-full h-1 bg-zinc-800 appearance-none cursor-pointer accent-sky-500 rounded-none"
+                />
+              </div>
+
+              <div className="space-y-0.5">
+                <div className="flex justify-between text-[9px] text-zinc-400">
+                  <span>PULSE DURATION</span>
+                  <span className="text-zinc-200">{activeElement.strobe.flashDurationMs}ms</span>
+                </div>
+                <input
+                  type="range"
+                  min={2}
+                  max={25}
+                  step={1}
+                  value={activeElement.strobe.flashDurationMs}
+                  onChange={(e) =>
+                    handleUpdateActive({
+                      strobe: {
+                        ...activeElement.strobe!,
+                        flashDurationMs: parseInt(e.target.value, 10),
+                      },
+                    })
+                  }
+                  className="w-full h-1 bg-zinc-800 appearance-none cursor-pointer accent-sky-500 rounded-none"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 4. MODERN LED */}
+        {activeElement.type === 'modern_led' && activeElement.led && (
+          <div className="border border-zinc-800 bg-black/60 p-2 space-y-1.5">
+            <span className="text-[10px] font-bold text-emerald-400 block border-b border-zinc-800 pb-1">
+              SOLID-STATE LED ARRAY
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-0.5">
+                <div className="flex justify-between text-[9px] text-zinc-400">
+                  <span>DIODE COUNT</span>
+                  <span className="text-zinc-200">{activeElement.led.diodeCount}</span>
+                </div>
+                <input
+                  type="range"
+                  min={1}
+                  max={18}
+                  step={1}
+                  value={activeElement.led.diodeCount}
+                  onChange={(e) =>
+                    handleUpdateActive({
+                      led: { ...activeElement.led!, diodeCount: parseInt(e.target.value, 10) },
+                    })
+                  }
+                  className="w-full h-1 bg-zinc-800 appearance-none cursor-pointer accent-emerald-500 rounded-none"
+                />
+              </div>
+
+              <div className="space-y-0.5">
+                <span className="text-zinc-500 text-[9px]">OPTIC LENS</span>
+                <select
+                  value={activeElement.led.opticLens}
+                  onChange={(e) =>
+                    handleUpdateActive({
+                      led: { ...activeElement.led!, opticLens: e.target.value as LedConfig['opticLens'] },
+                    })
+                  }
+                  className="w-full bg-black border border-zinc-700 px-1 py-0.5 text-zinc-200 text-[10px] font-mono focus:outline-none focus:border-amber-500 cursor-pointer rounded-none"
+                >
+                  <option value="tir">TIR Directional Collimator</option>
+                  <option value="linear">Linear Wide Angle</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

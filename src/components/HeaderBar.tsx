@@ -1,5 +1,5 @@
 import React from 'react';
-import { Volume2, VolumeX, Camera, Sun, Moon, Sparkles, Shield, RefreshCw } from 'lucide-react';
+import { Volume2, VolumeX, Camera, Sun, Moon, Sparkles, RefreshCw } from 'lucide-react';
 import { EnvironmentAtmosphere, LightbarConfig, RenderSettings } from '../types';
 import presetsData from '../data/lightbarPresets.json';
 
@@ -21,35 +21,28 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   fps,
 }) => {
   return (
-    <header className="bg-zinc-950/95 border-b border-zinc-800/80 px-4 py-3 sticky top-0 z-30 backdrop-blur-md flex flex-wrap items-center justify-between gap-3">
-      {/* Brand & App Title */}
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg bg-red-600/20 border border-red-500/40 flex items-center justify-center text-red-500 shadow-sm shadow-red-500/20">
-          <Shield className="w-5 h-5" />
+    <header className="bg-zinc-950 border-b border-zinc-800 px-3 py-1.5 sticky top-0 z-30 flex flex-wrap items-center justify-between gap-2 text-xs font-mono select-none rounded-none">
+      {/* Brand & App Title - Strict, no jargon */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 bg-red-600 rounded-none animate-pulse" />
+          <h1 className="text-xs font-bold text-zinc-100 tracking-wider font-mono">
+            OPTICAL LIGHTBAR SIMULATOR
+          </h1>
         </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-base font-bold text-zinc-100 tracking-tight">
-              Optical Lightbar Simulator
-            </h1>
-            <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
-              Raster 2D
-            </span>
-          </div>
-          <p className="text-xs text-zinc-400">
-            Physical glass refraction, filament thermal inertia & xenon strobe dynamics
-          </p>
-        </div>
+        <span className="text-[10px] text-zinc-500 border border-zinc-800 px-1 bg-zinc-900 rounded-none">
+          v1.0
+        </span>
       </div>
 
       {/* Preset Selector & Quick Controls */}
-      <div className="flex items-center flex-wrap gap-2">
+      <div className="flex items-center flex-wrap gap-1.5">
         {/* Presets dropdown */}
-        <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs">
-          <span className="text-zinc-400 font-medium">Preset:</span>
+        <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 px-2 py-1">
+          <span className="text-zinc-400 text-[10px]">PRESET:</span>
           <select
             id="preset-selector"
-            className="bg-transparent text-zinc-200 font-semibold focus:outline-none cursor-pointer pr-1"
+            className="bg-transparent text-zinc-200 text-xs font-bold focus:outline-none cursor-pointer pr-1 rounded-none"
             value={currentConfig.id}
             onChange={(e) => {
               const found = (presetsData.presets as unknown as LightbarConfig[]).find(
@@ -59,21 +52,21 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             }}
           >
             {(presetsData.presets as unknown as LightbarConfig[]).map((preset) => (
-              <option key={preset.id} value={preset.id} className="bg-zinc-900 text-zinc-200">
-                {preset.name}
+              <option key={preset.id} value={preset.id} className="bg-zinc-950 text-zinc-200">
+                {preset.name} ({preset.era})
               </option>
             ))}
           </select>
         </div>
 
         {/* Atmosphere mode */}
-        <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded-lg p-1 text-xs">
+        <div className="flex items-center bg-zinc-900 border border-zinc-800 p-0.5 gap-0.5">
           {(
             [
-              { id: 'night_street', label: 'Night Street', icon: Moon },
-              { id: 'foggy_atmosphere', label: 'Misty Fog', icon: Sparkles },
-              { id: 'inspection_studio', label: 'Studio Grid', icon: Sun },
-              { id: 'blackout_lab', label: 'Dark Lab', icon: RefreshCw },
+              { id: 'night_street', label: 'NIGHT', icon: Moon },
+              { id: 'foggy_atmosphere', label: 'FOG', icon: Sparkles },
+              { id: 'inspection_studio', label: 'STUDIO', icon: Sun },
+              { id: 'blackout_lab', label: 'DARK', icon: RefreshCw },
             ] as const
           ).map((item) => {
             const Icon = item.icon;
@@ -83,34 +76,34 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                 key={item.id}
                 id={`atmosphere-${item.id}`}
                 onClick={() => onUpdateSettings({ atmosphere: item.id as EnvironmentAtmosphere })}
-                title={`Environment: ${item.label}`}
-                className={`flex items-center gap-1.5 px-2 py-1 rounded transition-colors ${
+                title={`Atmosphere: ${item.label}`}
+                className={`flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-mono transition-colors cursor-pointer rounded-none border ${
                   active
-                    ? 'bg-zinc-800 text-zinc-100 font-medium border border-zinc-700'
-                    : 'text-zinc-400 hover:text-zinc-200'
+                    ? 'bg-zinc-800 text-zinc-100 border-zinc-600 font-bold'
+                    : 'bg-zinc-950 text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-900'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline text-[11px]">{item.label}</span>
+                <Icon className="w-3 h-3" />
+                <span>{item.label}</span>
               </button>
             );
           })}
         </div>
 
         {/* Audio Toggle & Volume Slider */}
-        <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5">
+        <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 px-2 py-1">
           <button
             id="audio-toggle-btn"
             onClick={() => onUpdateSettings({ audioEnabled: !renderSettings.audioEnabled })}
-            className={`transition-colors ${
+            className={`cursor-pointer ${
               renderSettings.audioEnabled ? 'text-amber-400' : 'text-zinc-500 hover:text-zinc-300'
             }`}
-            title={renderSettings.audioEnabled ? 'Mute Audio' : 'Unmute Motor & Relay Audio'}
+            title={renderSettings.audioEnabled ? 'Mute Rotator Motor Audio' : 'Unmute Motor Audio'}
           >
             {renderSettings.audioEnabled ? (
-              <Volume2 className="w-4 h-4" />
+              <Volume2 className="w-3.5 h-3.5" />
             ) : (
-              <VolumeX className="w-4 h-4" />
+              <VolumeX className="w-3.5 h-3.5" />
             )}
           </button>
           {renderSettings.audioEnabled && (
@@ -122,8 +115,8 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
               step={0.05}
               value={renderSettings.audioVolume}
               onChange={(e) => onUpdateSettings({ audioVolume: parseFloat(e.target.value) })}
-              className="w-16 h-1 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
-              title={`Volume: ${Math.round(renderSettings.audioVolume * 100)}%`}
+              className="w-12 h-1 bg-zinc-700 appearance-none cursor-pointer accent-amber-500 rounded-none"
+              title={`Motor audio volume: ${Math.round(renderSettings.audioVolume * 100)}%`}
             />
           )}
         </div>
@@ -132,16 +125,16 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
         <button
           id="btn-take-snapshot"
           onClick={onTakeSnapshot}
-          className="flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-zinc-100 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-          title="Export high-resolution canvas snapshot"
+          className="flex items-center gap-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 px-2 py-1 text-[11px] font-mono font-bold cursor-pointer rounded-none"
+          title="Save canvas screenshot"
         >
           <Camera className="w-3.5 h-3.5 text-zinc-400" />
-          <span className="hidden md:inline">Snapshot</span>
+          <span>SNAP</span>
         </button>
 
-        {/* FPS Counter Badge */}
-        <div className="bg-zinc-900/80 border border-zinc-800/80 font-mono text-[11px] text-emerald-400 px-2 py-1 rounded">
-          {fps} <span className="text-zinc-500 text-[9px]">FPS</span>
+        {/* FPS Counter */}
+        <div className="bg-zinc-900 border border-zinc-800 font-mono text-[10px] text-emerald-400 px-1.5 py-1">
+          {fps} <span className="text-zinc-600">FPS</span>
         </div>
       </div>
     </header>

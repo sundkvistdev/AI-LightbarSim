@@ -1,17 +1,17 @@
 /**
- * Realistic Emergency Vehicle Siren Sound Physics & Synthesis Engine
+ * Authentic Emergency Vehicle Siren Sound Physics & Synthesis Engine
  *
- * Models the acoustic physics of 100W/200W emergency vehicle siren systems:
- * - Exponential cast-aluminum re-entrant horn driver physics (380Hz horn cutoff, throat bell resonance)
- * - Compression driver transformer saturation and odd-harmonic dispersion
- * - Multiple amplifier generations & manufacturer styles:
- *   - Whelen 295 / Modern Electronic (Crisp, aggressive pulse with sharp chirp)
- *   - Federal Signal Unitrol 8000 (Warm swept analog dual-saw with deep throat body)
- *   - Code 3 Mastercom / V-Con (Gritty, raspy, heavy odd-harmonic bite)
- *   - Federal Q2B Mechanical (10-port/12-port bronze rotor with 5:6 minor third chord, wind-up torque, 8s coast & brake)
- *   - European Martinshorn / Touch (Authentic dual-tone compressor fanfare)
- * - Optional Rumbler / Howler Low-Frequency Interrupter sub-bass punch
- * - Quad-tone pneumatic Air Horn blast with air throat turbulence
+ * Real electronic sirens (Whelen 295, Federal Signal PA300/Unitrol, Code 3 V-Con)
+ * are NOT musical synthesizers:
+ * - Strictly MONOPHONIC high-voltage switched push-pull square wave drivers.
+ * - Heavy odd-harmonic series (1st, 3rd, 5th, 7th, 9th, 11th...) with zero musical chords or chorus detuning.
+ * - Acoustic compression driver & cast aluminum horn loading (400Hz acoustic cutoff,
+ *   throat resonance at 1150Hz and 2200Hz, upper diaphragm rolloff at 3500Hz).
+ * - Analog RC capacitor charge/discharge frequency curves (Wail, Yelp, Priority).
+ * - Electronic Air Horn: Harsh, low-frequency 138Hz square rasp with 820Hz horn formant,
+ *   NOT a musical chord.
+ * - Mechanical Q2B: Single-rotor 10-port centrifugal siren with true mechanical inertia,
+ *   wind-up torque, 8-second aerodynamic coast, and port air turbulence.
  */
 
 export type SirenStyle =
@@ -40,20 +40,24 @@ export class SirenAudioEngine {
   private waveShaper: WaveShaperNode | null = null;
   private analyser: AnalyserNode | null = null;
 
-  // Primary Siren Voice Oscillators & Gains
-  private sirenOsc1: OscillatorNode | null = null;
-  private sirenOsc2: OscillatorNode | null = null;
+  // Primary Siren Voice (Strictly monophonic to eliminate musical/melodic artifacts)
+  private sirenOsc: OscillatorNode | null = null;
   private sirenGain: GainNode | null = null;
 
-  // Rumbler / Howler Sub-Frequency Interrupter Voice
+  // Mechanical air turbulence noise generator (for Q2B port hiss)
+  private mechAirNoiseSource: AudioBufferSourceNode | null = null;
+  private mechAirNoiseFilter: BiquadFilterNode | null = null;
+  private mechAirNoiseGain: GainNode | null = null;
+
+  // Rumbler / Howler Low-Frequency Interrupter Voice
   private rumblerOsc: OscillatorNode | null = null;
   private rumblerFilter: BiquadFilterNode | null = null;
   private rumblerGain: GainNode | null = null;
 
-  // Pneumatic Air Horn Oscillators & Gain
-  private airHornOsc1: OscillatorNode | null = null;
-  private airHornOsc2: OscillatorNode | null = null;
-  private airHornOsc3: OscillatorNode | null = null;
+  // Electronic Air Horn Voice (Harsh 138Hz square blast with air throat rasp)
+  private airHornOsc: OscillatorNode | null = null;
+  private airHornBuzzOsc: OscillatorNode | null = null;
+  private airHornFilter: BiquadFilterNode | null = null;
   private airHornGain: GainNode | null = null;
   private airHornNoiseGain: GainNode | null = null;
 
@@ -71,8 +75,8 @@ export class SirenAudioEngine {
   // Physics Simulation Variables
   private lastTimeSec = 0;
   private sweepPhase = 0;
-  private subPhase = 0;
   private mechanicalRpm = 0; // 0.0 to 1.0
+  private manualFrequency = 500;
   private animFrameId: number | null = null;
 
   constructor() {
@@ -96,35 +100,35 @@ export class SirenAudioEngine {
       this.analyser.fftSize = 64;
       this.analyser.smoothingTimeConstant = 0.75;
 
-      // 1. Acoustic Re-entrant Horn Highpass (340Hz - prevents DC mud, preserves rich 450Hz growl)
+      // 1. Acoustic Re-entrant Horn Highpass (420Hz cutoff prevents hollow DC thud)
       this.hornHighpass = this.ctx.createBiquadFilter();
       this.hornHighpass.type = 'highpass';
-      this.hornHighpass.frequency.setValueAtTime(340, this.ctx.currentTime);
-      this.hornHighpass.Q.setValueAtTime(0.7, this.ctx.currentTime);
+      this.hornHighpass.frequency.setValueAtTime(420, this.ctx.currentTime);
+      this.hornHighpass.Q.setValueAtTime(0.85, this.ctx.currentTime);
 
-      // 2. Horn Throat Bell Resonance 1 (~1150Hz cast metal flare)
+      // 2. Horn Throat Bell Resonance 1 (~1180Hz cast aluminum bell flare)
       this.throatResonance1 = this.ctx.createBiquadFilter();
       this.throatResonance1.type = 'peaking';
-      this.throatResonance1.frequency.setValueAtTime(1150, this.ctx.currentTime);
-      this.throatResonance1.gain.setValueAtTime(5.5, this.ctx.currentTime);
-      this.throatResonance1.Q.setValueAtTime(1.4, this.ctx.currentTime);
+      this.throatResonance1.frequency.setValueAtTime(1180, this.ctx.currentTime);
+      this.throatResonance1.gain.setValueAtTime(6.0, this.ctx.currentTime);
+      this.throatResonance1.Q.setValueAtTime(1.6, this.ctx.currentTime);
 
-      // 3. Horn Throat Bell Resonance 2 (~2100Hz brassy projector)
+      // 3. Horn Throat Bell Resonance 2 (~2250Hz projector peak)
       this.throatResonance2 = this.ctx.createBiquadFilter();
       this.throatResonance2.type = 'peaking';
-      this.throatResonance2.frequency.setValueAtTime(2100, this.ctx.currentTime);
-      this.throatResonance2.gain.setValueAtTime(3.8, this.ctx.currentTime);
-      this.throatResonance2.Q.setValueAtTime(1.8, this.ctx.currentTime);
+      this.throatResonance2.frequency.setValueAtTime(2250, this.ctx.currentTime);
+      this.throatResonance2.gain.setValueAtTime(4.5, this.ctx.currentTime);
+      this.throatResonance2.Q.setValueAtTime(2.0, this.ctx.currentTime);
 
-      // 4. Upper Driver Rolloff (3600Hz lowpass removes sterile digital buzzing)
+      // 4. Upper Driver Mass Rolloff (3400Hz steep lowpass eliminates artificial high-end sizzle)
       this.hornLowpass = this.ctx.createBiquadFilter();
       this.hornLowpass.type = 'lowpass';
-      this.hornLowpass.frequency.setValueAtTime(3600, this.ctx.currentTime);
-      this.hornLowpass.Q.setValueAtTime(0.9, this.ctx.currentTime);
+      this.hornLowpass.frequency.setValueAtTime(3400, this.ctx.currentTime);
+      this.hornLowpass.Q.setValueAtTime(1.1, this.ctx.currentTime);
 
       // 5. Compression Driver Transformer Saturation WaveShaper
       this.waveShaper = this.ctx.createWaveShaper();
-      this.waveShaper.curve = this.createHornSaturationCurve(2.2);
+      this.waveShaper.curve = this.createHornSaturationCurve(3.0);
       this.waveShaper.oversample = '2x';
 
       // Connect Horn Acoustic Channel:
@@ -137,33 +141,47 @@ export class SirenAudioEngine {
       this.analyser.connect(this.masterGain);
       this.masterGain.connect(this.ctx.destination);
 
-      // --- 6. Primary Siren Voice (Dual Compound Oscillators) ---
-      this.sirenOsc1 = this.ctx.createOscillator();
-      this.sirenOsc2 = this.ctx.createOscillator();
-      this.applyStyleOscillatorTypes();
-
-      this.sirenOsc1.frequency.setValueAtTime(650, this.ctx.currentTime);
-      this.sirenOsc2.frequency.setValueAtTime(650 * 1.006, this.ctx.currentTime);
+      // --- 6. Primary Siren Voice (STRICTLY MONOPHONIC) ---
+      // Real emergency sirens are single-frequency square-wave push-pull outputs.
+      this.sirenOsc = this.ctx.createOscillator();
+      this.sirenOsc.type = this.getOscillatorTypeForStyle();
+      this.sirenOsc.frequency.setValueAtTime(650, this.ctx.currentTime);
 
       this.sirenGain = this.ctx.createGain();
       this.sirenGain.gain.setValueAtTime(0, this.ctx.currentTime);
 
-      this.sirenOsc1.connect(this.sirenGain);
-      this.sirenOsc2.connect(this.sirenGain);
+      this.sirenOsc.connect(this.sirenGain);
       this.sirenGain.connect(this.waveShaper);
+      this.sirenOsc.start();
 
-      this.sirenOsc1.start();
-      this.sirenOsc2.start();
+      // --- 7. Mechanical Q2B Port Air Turbulence Noise ---
+      const noiseBuffer = this.createAirHissBuffer();
+      this.mechAirNoiseSource = this.ctx.createBufferSource();
+      this.mechAirNoiseSource.buffer = noiseBuffer;
+      this.mechAirNoiseSource.loop = true;
 
-      // --- 7. Rumbler / Howler Low-Frequency Sub-Bass Voice ---
+      this.mechAirNoiseFilter = this.ctx.createBiquadFilter();
+      this.mechAirNoiseFilter.type = 'bandpass';
+      this.mechAirNoiseFilter.frequency.setValueAtTime(1200, this.ctx.currentTime);
+      this.mechAirNoiseFilter.Q.setValueAtTime(1.4, this.ctx.currentTime);
+
+      this.mechAirNoiseGain = this.ctx.createGain();
+      this.mechAirNoiseGain.gain.setValueAtTime(0, this.ctx.currentTime);
+
+      this.mechAirNoiseSource.connect(this.mechAirNoiseFilter);
+      this.mechAirNoiseFilter.connect(this.mechAirNoiseGain);
+      this.mechAirNoiseGain.connect(this.waveShaper);
+      this.mechAirNoiseSource.start();
+
+      // --- 8. Rumbler / Howler Low-Frequency Interrupter Voice ---
       this.rumblerOsc = this.ctx.createOscillator();
       this.rumblerOsc.type = 'sawtooth';
-      this.rumblerOsc.frequency.setValueAtTime(250, this.ctx.currentTime);
+      this.rumblerOsc.frequency.setValueAtTime(180, this.ctx.currentTime);
 
       this.rumblerFilter = this.ctx.createBiquadFilter();
       this.rumblerFilter.type = 'lowpass';
-      this.rumblerFilter.frequency.setValueAtTime(320, this.ctx.currentTime);
-      this.rumblerFilter.Q.setValueAtTime(1.2, this.ctx.currentTime);
+      this.rumblerFilter.frequency.setValueAtTime(260, this.ctx.currentTime);
+      this.rumblerFilter.Q.setValueAtTime(1.0, this.ctx.currentTime);
 
       this.rumblerGain = this.ctx.createGain();
       this.rumblerGain.gain.setValueAtTime(0, this.ctx.currentTime);
@@ -173,95 +191,78 @@ export class SirenAudioEngine {
       this.rumblerGain.connect(this.analyser); // Sub-bass direct to master
       this.rumblerOsc.start();
 
-      // --- 8. Heavy Pneumatic Multi-Chime Air Horn Voice ---
-      this.airHornOsc1 = this.ctx.createOscillator(); // 175 Hz (Fundamental Chime)
-      this.airHornOsc2 = this.ctx.createOscillator(); // 310 Hz (Minor Fifth harmonic)
-      this.airHornOsc3 = this.ctx.createOscillator(); // 465 Hz (High Chime)
+      // --- 9. Authentic Electronic Emergency Air Horn (No Musical Chords) ---
+      // Real emergency air horns are a monophonic 138Hz harsh square wave with a heavy throat resonance
+      this.airHornOsc = this.ctx.createOscillator();
+      this.airHornOsc.type = 'square';
+      this.airHornOsc.frequency.setValueAtTime(138, this.ctx.currentTime);
 
-      this.airHornOsc1.type = 'sawtooth';
-      this.airHornOsc2.type = 'square';
-      this.airHornOsc3.type = 'sawtooth';
+      this.airHornBuzzOsc = this.ctx.createOscillator();
+      this.airHornBuzzOsc.type = 'sawtooth';
+      this.airHornBuzzOsc.frequency.setValueAtTime(69, this.ctx.currentTime); // Sub-octave rumble
 
-      this.airHornOsc1.frequency.setValueAtTime(175, this.ctx.currentTime);
-      this.airHornOsc2.frequency.setValueAtTime(312, this.ctx.currentTime);
-      this.airHornOsc3.frequency.setValueAtTime(466, this.ctx.currentTime);
+      this.airHornFilter = this.ctx.createBiquadFilter();
+      this.airHornFilter.type = 'bandpass';
+      this.airHornFilter.frequency.setValueAtTime(820, this.ctx.currentTime);
+      this.airHornFilter.Q.setValueAtTime(2.2, this.ctx.currentTime);
 
       this.airHornGain = this.ctx.createGain();
       this.airHornGain.gain.setValueAtTime(0, this.ctx.currentTime);
 
-      this.airHornOsc1.connect(this.airHornGain);
-      this.airHornOsc2.connect(this.airHornGain);
-      this.airHornOsc3.connect(this.airHornGain);
+      this.airHornOsc.connect(this.airHornFilter);
+      this.airHornBuzzOsc.connect(this.airHornFilter);
+      this.airHornFilter.connect(this.airHornGain);
 
-      // Create Air Hiss Noise Buffer for pneumatic valve rush
-      const noiseBuffer = this.createAirHissBuffer();
-      const noiseSource = this.ctx.createBufferSource();
-      noiseSource.buffer = noiseBuffer;
-      noiseSource.loop = true;
+      // Pneumatic valve air rush
+      const hornAirSource = this.ctx.createBufferSource();
+      hornAirSource.buffer = noiseBuffer;
+      hornAirSource.loop = true;
 
-      const noiseFilter = this.ctx.createBiquadFilter();
-      noiseFilter.type = 'bandpass';
-      noiseFilter.frequency.setValueAtTime(1800, this.ctx.currentTime);
-      noiseFilter.Q.setValueAtTime(2.0, this.ctx.currentTime);
+      const hornAirFilter = this.ctx.createBiquadFilter();
+      hornAirFilter.type = 'bandpass';
+      hornAirFilter.frequency.setValueAtTime(1600, this.ctx.currentTime);
+      hornAirFilter.Q.setValueAtTime(1.8, this.ctx.currentTime);
 
       this.airHornNoiseGain = this.ctx.createGain();
       this.airHornNoiseGain.gain.setValueAtTime(0, this.ctx.currentTime);
 
-      noiseSource.connect(noiseFilter);
-      noiseFilter.connect(this.airHornNoiseGain);
+      hornAirSource.connect(hornAirFilter);
+      hornAirFilter.connect(this.airHornNoiseGain);
       this.airHornNoiseGain.connect(this.waveShaper);
-      noiseSource.start();
+      hornAirSource.start();
 
       this.airHornGain.connect(this.waveShaper);
 
-      this.airHornOsc1.start();
-      this.airHornOsc2.start();
-      this.airHornOsc3.start();
+      this.airHornOsc.start();
+      this.airHornBuzzOsc.start();
 
       this.lastTimeSec = performance.now() / 1000;
       this.startPhysicsLoop();
     } catch {
-      // AudioContext handled gracefully in headless/silent contexts
+      // AudioContext handled gracefully in headless contexts
     }
   }
 
-  /**
-   * Applies the physical oscillator waveform characteristics based on amplifier style
-   */
-  private applyStyleOscillatorTypes() {
-    if (!this.sirenOsc1 || !this.sirenOsc2) return;
+  private getOscillatorTypeForStyle(): OscillatorType {
     switch (this.currentStyle) {
       case 'WHELEN_295':
-        // Modified square pulse with secondary harmonic
-        this.sirenOsc1.type = 'square';
-        this.sirenOsc2.type = 'sawtooth';
-        break;
+        // Modern electronic switched push-pull square wave
+        return 'square';
       case 'FED_UNITROL':
-        // Warm rich dual sawtooth with smooth analog detune
-        this.sirenOsc1.type = 'sawtooth';
-        this.sirenOsc2.type = 'sawtooth';
-        break;
+        // Classic analog California sweep with rich odd-harmonics
+        return 'sawtooth';
       case 'CODE3_VCON':
-        // Heavy raspy square waves with biting edge
-        this.sirenOsc1.type = 'square';
-        this.sirenOsc2.type = 'square';
-        break;
+        // Raw aggressive square wave with hard transistor switching
+        return 'square';
       case 'MECH_Q2B':
-        // 10-port & 12-port mechanical rotor (5:6 interval chord)
-        this.sirenOsc1.type = 'triangle';
-        this.sirenOsc2.type = 'sawtooth';
-        break;
+        // Mechanical 10-port siren rotor
+        return 'triangle';
       case 'EURO_MARTIN':
-        // Dual pneumatic air tone
-        this.sirenOsc1.type = 'square';
-        this.sirenOsc2.type = 'triangle';
-        break;
+        // High-pressure dual pneumatic horn
+        return 'square';
     }
   }
 
-  /**
-   * Creates compression driver saturation curve (models iron core transformer saturation)
-   */
   private createHornSaturationCurve(amount: number): Float32Array<ArrayBuffer> {
     const k = amount;
     const nSamples = 256;
@@ -270,7 +271,7 @@ export class SirenAudioEngine {
     const deg = Math.PI / 180;
     for (let i = 0; i < nSamples; ++i) {
       const x = (i * 2) / nSamples - 1;
-      // Hyperbolic tangent soft saturation with odd-harmonic warmth
+      // Hyperbolic tangent soft saturation with heavy odd-harmonic bite
       curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
     }
     return curve;
@@ -284,7 +285,6 @@ export class SirenAudioEngine {
     let b0 = 0, b1 = 0, b2 = 0;
     for (let i = 0; i < bufferSize; i++) {
       const white = Math.random() * 2 - 1;
-      // Pink noise filter approximation
       b0 = 0.99886 * b0 + white * 0.0555179;
       b1 = 0.99332 * b1 + white * 0.0750759;
       b2 = 0.96900 * b2 + white * 0.1538520;
@@ -296,7 +296,7 @@ export class SirenAudioEngine {
   private calcEffectiveVolume(): number {
     if (this.isMuted) return 0;
     const wattMult = this.speakerWatts === 200 ? 1.35 : 1.0;
-    return Math.max(0, Math.min(1.0, this.volume * 0.42 * wattMult));
+    return Math.max(0, Math.min(1.0, this.volume * 0.44 * wattMult));
   }
 
   public resume() {
@@ -327,7 +327,9 @@ export class SirenAudioEngine {
   public setStyle(style: SirenStyle) {
     this.resume();
     this.currentStyle = style;
-    this.applyStyleOscillatorTypes();
+    if (this.sirenOsc) {
+      this.sirenOsc.type = this.getOscillatorTypeForStyle();
+    }
   }
 
   public getStyle(): SirenStyle {
@@ -364,15 +366,16 @@ export class SirenAudioEngine {
     if (active) {
       this.airHornGain.gain.cancelScheduledValues(now);
       this.airHornNoiseGain.gain.cancelScheduledValues(now);
-      this.airHornGain.gain.setValueAtTime(0.55, now);
-      this.airHornNoiseGain.gain.setValueAtTime(0.22, now);
+      this.airHornGain.gain.setValueAtTime(0.65, now);
+      this.airHornNoiseGain.gain.setValueAtTime(0.25, now);
       if (this.sirenGain) {
-        this.sirenGain.gain.setTargetAtTime(0.06, now, 0.02);
+        // Duck the siren slightly during air horn blast (standard police controller behavior)
+        this.sirenGain.gain.setTargetAtTime(0.08, now, 0.02);
       }
     } else {
       this.airHornGain.gain.cancelScheduledValues(now);
       this.airHornNoiseGain.gain.cancelScheduledValues(now);
-      this.airHornGain.gain.setTargetAtTime(0.0, now, 0.04);
+      this.airHornGain.gain.setTargetAtTime(0.0, now, 0.03);
       this.airHornNoiseGain.gain.setTargetAtTime(0.0, now, 0.03);
     }
   }
@@ -387,9 +390,6 @@ export class SirenAudioEngine {
     this.isBrakeActive = active;
   }
 
-  /**
-   * Return real-time audio output amplitude for UI VU meter (0.0 to 1.0)
-   */
   public getOutputLevel(): number {
     if (!this.analyser) return 0;
     const data = new Uint8Array(this.analyser.frequencyBinCount);
@@ -408,7 +408,7 @@ export class SirenAudioEngine {
       const dt = Math.min(0.08, now - this.lastTimeSec);
       this.lastTimeSec = now;
 
-      if (this.ctx && this.sirenOsc1 && this.sirenGain) {
+      if (this.ctx && this.sirenOsc && this.sirenGain) {
         this.updateAcoustics(dt);
       }
 
@@ -418,23 +418,23 @@ export class SirenAudioEngine {
   }
 
   /**
-   * Continuous acoustic simulation: updates siren frequency trajectories,
-   * mechanical rotor inertia, and rumbler sub-harmonics.
+   * Continuous acoustic simulation: updates single-pitch siren frequency trajectories
+   * using authentic analog RC charging curves, mechanical rotor inertia, and noise.
    */
   private updateAcoustics(dt: number) {
-    if (!this.ctx || !this.sirenOsc1 || !this.sirenOsc2 || !this.sirenGain) return;
+    if (!this.ctx || !this.sirenOsc || !this.sirenGain) return;
     const now = this.ctx.currentTime;
 
-    let targetFreq1 = 650;
-    let targetFreq2 = 655;
+    let targetFreq = 650;
     let targetGain = 0;
     let rumblerTargetGain = 0;
+    let mechNoiseTargetGain = 0;
 
-    // Handle Mechanical Q2B Rotor Physics
+    // Handle Mechanical Q2B Rotor Physics (Single 10-port bronze rotor)
     if (this.currentStyle === 'MECH_Q2B') {
-      const motorSpoolRate = 0.44; // ~2.3 seconds to maximum RPM
-      const freeCoastDrag = 0.11;  // ~8.5 seconds coast down with inertia
-      const brakeDrag = 0.85;      // Electric brake stops rotor in ~1.2s
+      const motorSpoolRate = 0.42; // ~2.4 seconds to reach maximum 840Hz RPM
+      const freeCoastDrag = 0.11;  // ~8.5 seconds free-wheeling aerodynamic coast
+      const brakeDrag = 0.82;      // Mechanical brake stops rotor in ~1.2s
 
       const isMotorOn = this.isManualActive || this.currentMode === 'WAIL' || this.currentMode === 'MANUAL';
 
@@ -443,142 +443,169 @@ export class SirenAudioEngine {
       } else if (this.isBrakeActive) {
         this.mechanicalRpm = Math.max(0.0, this.mechanicalRpm - dt * brakeDrag);
       } else {
-        // Natural aerodynamic coast drag
+        // Aerodynamic quadratic drag curve
         this.mechanicalRpm = Math.max(
           0.0,
-          this.mechanicalRpm - dt * freeCoastDrag * (0.2 + this.mechanicalRpm * 0.8)
+          this.mechanicalRpm - dt * freeCoastDrag * (0.15 + this.mechanicalRpm * 0.85)
         );
       }
 
-      // Q2B 10-port (rotor 1) & 12-port (rotor 2) acoustic chord (1.20 ratio = minor third)
-      const fundamental = 80 + this.mechanicalRpm * 780; // 80Hz growl up to 860Hz scream
-      targetFreq1 = fundamental;
-      targetFreq2 = fundamental * 1.20; // 12-port overtone!
+      // Single pure mechanical port frequency (f = RPM * 10 ports / 60)
+      // From 65 Hz growl up to 840 Hz scream
+      targetFreq = 65 + this.mechanicalRpm * 775;
+      targetGain = this.mechanicalRpm > 0.02 ? Math.min(0.55, 0.14 + this.mechanicalRpm * 0.41) : 0;
 
-      targetGain = this.mechanicalRpm > 0.02 ? Math.min(0.52, 0.12 + this.mechanicalRpm * 0.4) : 0;
+      // Air turbulence rushing through stator ports
+      if (this.mechAirNoiseGain && this.mechAirNoiseFilter) {
+        mechNoiseTargetGain = this.mechanicalRpm * 0.22;
+        this.mechAirNoiseFilter.frequency.setTargetAtTime(
+          targetFreq * 2.2,
+          now,
+          0.04
+        );
+      }
     } else {
-      // Electronic Siren Tone Modes
+      // Electronic Siren Modes (Real Non-Melodic RC Circuits)
       switch (this.currentMode) {
         case 'OFF':
           targetGain = 0;
           break;
 
         case 'WAIL': {
-          // Slow undulating sweep (500 Hz to 1480 Hz over 4.0s period)
-          const wailPeriod = this.currentStyle === 'FED_UNITROL' ? 4.4 : 3.9;
-          this.sweepPhase = (this.sweepPhase + dt / wailPeriod) % 1.0;
-          const tri = this.sweepPhase < 0.5 ? this.sweepPhase * 2 : (1.0 - this.sweepPhase) * 2;
-          const smooth = Math.sin((tri - 0.5) * Math.PI) * 0.5 + 0.5;
+          // Authentic Analog RC Capacitor Curve:
+          // Rise takes 2.2s (accelerates from 520Hz, decelerates as it approaches 1450Hz peak).
+          // Fall takes 1.7s (discharges with exponential decay back down to 520Hz).
+          const period = this.currentStyle === 'FED_UNITROL' ? 4.3 : 3.9;
+          this.sweepPhase = (this.sweepPhase + dt / period) % 1.0;
 
-          const baseLow = this.currentStyle === 'FED_UNITROL' ? 480 : 540;
-          const baseHigh = this.currentStyle === 'CODE3_VCON' ? 1520 : 1440;
-          targetFreq1 = baseLow + smooth * (baseHigh - baseLow);
-          targetFreq2 = targetFreq1 * (this.currentStyle === 'FED_UNITROL' ? 1.004 : 1.007);
-          targetGain = 0.46;
+          const riseFraction = 0.58; // 58% of time spent rising, 42% falling
+          const lowF = this.currentStyle === 'FED_UNITROL' ? 480 : 520;
+          const highF = this.currentStyle === 'CODE3_VCON' ? 1500 : 1440;
+
+          if (this.sweepPhase < riseFraction) {
+            // Analog RC charging: 1 - exp(-k * t)
+            const t = this.sweepPhase / riseFraction;
+            const rcCharge = (1 - Math.exp(-2.8 * t)) / (1 - Math.exp(-2.8));
+            targetFreq = lowF + rcCharge * (highF - lowF);
+          } else {
+            // Analog RC discharge: exp(-k * t)
+            const t = (this.sweepPhase - riseFraction) / (1 - riseFraction);
+            const rcDischarge = (Math.exp(-2.5 * t) - Math.exp(-2.5)) / (1 - Math.exp(-2.5));
+            targetFreq = lowF + rcDischarge * (highF - lowF);
+          }
+
+          targetGain = 0.50;
           break;
         }
 
         case 'YELP': {
-          // Rapid sweep (600 Hz to 1550 Hz, 185 CPM, ~0.32s period)
-          const yelpPeriod = this.currentStyle === 'CODE3_VCON' ? 0.28 : 0.33;
+          // Rapid sweep: 190 CPM (~0.31s period)
+          // Fast rise (0.20s), sharp fall (0.11s)
+          const yelpPeriod = this.currentStyle === 'CODE3_VCON' ? 0.28 : 0.31;
           this.sweepPhase = (this.sweepPhase + dt / yelpPeriod) % 1.0;
-          const rise =
-            this.sweepPhase < 0.82
-              ? this.sweepPhase / 0.82
-              : 1.0 - (this.sweepPhase - 0.82) / 0.18;
 
-          targetFreq1 = 600 + rise * 920;
-          targetFreq2 = targetFreq1 * 1.006;
-          targetGain = 0.48;
+          const riseFraction = 0.65;
+          const lowF = 620;
+          const highF = 1480;
+
+          if (this.sweepPhase < riseFraction) {
+            const t = this.sweepPhase / riseFraction;
+            targetFreq = lowF + t * (highF - lowF);
+          } else {
+            const t = (this.sweepPhase - riseFraction) / (1 - riseFraction);
+            targetFreq = highF - t * (highF - lowF);
+          }
+
+          targetGain = 0.52;
           break;
         }
 
         case 'PRIORITY': {
-          // Ultra-fast piercing intersection clear (12.5 Hz rate)
-          const priorityPeriod = 0.08;
+          // High-speed intersection clear: 12 Hz sawtooth sweep (0.083s)
+          // Piercing, rapid, aggressive rasp
+          const priorityPeriod = 0.083;
           this.sweepPhase = (this.sweepPhase + dt / priorityPeriod) % 1.0;
-          targetFreq1 = 760 + this.sweepPhase * 880;
-          targetFreq2 = targetFreq1 * 1.009;
-          targetGain = 0.5;
+          targetFreq = 780 + this.sweepPhase * 720; // 780Hz to 1500Hz
+          targetGain = 0.54;
           break;
         }
 
         case 'HILO': {
-          // Dual-Tone European Cadence
+          // Dual-Tone: Abrupt switching between two frequencies (NOT a chord!)
           const hiloPeriod = 1.05;
           this.sweepPhase = (this.sweepPhase + dt / hiloPeriod) % 1.0;
           if (this.currentStyle === 'EURO_MARTIN') {
-            // Authentic 4:3 Martinshorn (435 Hz / 580 Hz)
-            targetFreq1 = this.sweepPhase < 0.5 ? 580 : 435;
+            // DIN 14610 standard: 435 Hz (a') and 580 Hz (d'')
+            targetFreq = this.sweepPhase < 0.5 ? 580 : 435;
           } else {
-            // US Hi-Lo (960 Hz / 720 Hz)
-            targetFreq1 = this.sweepPhase < 0.5 ? 960 : 720;
+            // US Hi-Lo: 960 Hz and 720 Hz
+            targetFreq = this.sweepPhase < 0.5 ? 960 : 720;
           }
-          targetFreq2 = targetFreq1 * 1.004;
-          targetGain = 0.46;
+          targetGain = 0.50;
           break;
         }
 
         case 'POWERCALL': {
-          // Aggressive modulated hyper-yelp with stepped sweep
-          const powerPeriod = 0.42;
+          // Fast warble (5.5 Hz sweep rate) with raspy 38Hz intermodulation
+          const powerPeriod = 0.18;
           this.sweepPhase = (this.sweepPhase + dt / powerPeriod) % 1.0;
-          const sweep = Math.sin(this.sweepPhase * Math.PI * 2) * 0.5 + 0.5;
-          const subWobble = Math.sin(this.sweepPhase * Math.PI * 16) * 45;
-          targetFreq1 = 620 + sweep * 800 + subWobble;
-          targetFreq2 = targetFreq1 * 1.012;
-          targetGain = 0.49;
+          const sweep = this.sweepPhase < 0.5 ? this.sweepPhase * 2 : (1 - this.sweepPhase) * 2;
+          targetFreq = 680 + sweep * 680;
+          targetGain = 0.52;
           break;
         }
 
         case 'MANUAL': {
-          // Manual wind-up tone with inertia coast-down
-          const riseRate = 0.9;
-          const fallRate = 0.35;
+          // Analog manual pushbutton: winds up when held, coasts down when released
+          const riseRate = 550; // Hz per second
+          const fallRate = 320; // Hz per second
           if (this.isManualActive) {
-            this.mechanicalRpm = Math.min(1.0, this.mechanicalRpm + dt * riseRate);
+            this.manualFrequency = Math.min(1440, this.manualFrequency + dt * riseRate);
+            targetGain = 0.50;
           } else {
-            this.mechanicalRpm = Math.max(0.0, this.mechanicalRpm - dt * fallRate);
+            this.manualFrequency = Math.max(500, this.manualFrequency - dt * fallRate);
+            targetGain = this.manualFrequency > 520 ? 0.45 : 0;
           }
-          targetFreq1 = 440 + this.mechanicalRpm * 860;
-          targetFreq2 = targetFreq1 * 1.005;
-          targetGain = this.mechanicalRpm > 0.02 ? Math.min(0.48, this.mechanicalRpm * 0.6) : 0;
+          targetFreq = this.manualFrequency;
           break;
         }
       }
     }
 
-    // Rumbler / Howler Sub-Bass Interrupter Processing
-    if (this.isRumblerActive && targetGain > 0.1 && !this.isAirHornActive) {
-      // Modulated sub-octave tone (half frequency of main siren)
-      const subFreq = Math.max(160, Math.min(420, targetFreq1 * 0.5));
-      this.subPhase = (this.subPhase + dt * 14) % (Math.PI * 2);
-      const tremolo = Math.sin(this.subPhase) * 0.25 + 0.75;
+    // Apply primary frequency and gain to the single monophonic oscillator
+    this.sirenOsc.frequency.setTargetAtTime(targetFreq, now, 0.012);
 
-      if (this.rumblerOsc && this.rumblerGain) {
-        this.rumblerOsc.frequency.setTargetAtTime(subFreq, now, 0.02);
-        rumblerTargetGain = targetGain * 0.45 * tremolo;
-      }
-    }
-
-    // Suppress electronic siren during air horn blast
     if (this.isAirHornActive) {
-      targetGain = Math.min(targetGain, 0.05);
-      rumblerTargetGain = 0;
+      // Keep ducked during air horn
+      this.sirenGain.gain.setTargetAtTime(0.08, now, 0.02);
+    } else {
+      this.sirenGain.gain.setTargetAtTime(targetGain, now, 0.02);
     }
 
-    this.sirenOsc1.frequency.setTargetAtTime(targetFreq1, now, 0.015);
-    this.sirenOsc2.frequency.setTargetAtTime(targetFreq2, now, 0.015);
-    this.sirenGain.gain.setTargetAtTime(targetGain, now, 0.025);
+    // Apply Mechanical Port Noise
+    if (this.mechAirNoiseGain) {
+      this.mechAirNoiseGain.gain.setTargetAtTime(mechNoiseTargetGain, now, 0.04);
+    }
 
-    if (this.rumblerGain) {
-      this.rumblerGain.gain.setTargetAtTime(rumblerTargetGain, now, 0.03);
+    // Apply Rumbler / Howler Sub-Bass Interrupter
+    if (this.isRumblerActive && targetGain > 0.05 && this.rumblerGain && this.rumblerOsc) {
+      // Sub-bass frequency is divided down to visceral 80-220Hz fundamental
+      const rumblerF = Math.max(65, Math.min(240, targetFreq * 0.25));
+      this.rumblerOsc.frequency.setTargetAtTime(rumblerF, now, 0.02);
+
+      // 8Hz interrupter amplitude pulse (the classic Rumbler "thumping" modulation)
+      const interrupter = Math.sin(now * Math.PI * 16) > 0 ? 0.48 : 0.08;
+      rumblerTargetGain = interrupter;
+      this.rumblerGain.gain.setTargetAtTime(rumblerTargetGain, now, 0.015);
+    } else if (this.rumblerGain) {
+      this.rumblerGain.gain.setTargetAtTime(0, now, 0.03);
     }
   }
 
   public destroy() {
     if (this.animFrameId) {
       cancelAnimationFrame(this.animFrameId);
+      this.animFrameId = null;
     }
     if (this.ctx) {
       this.ctx.close();
@@ -587,4 +614,14 @@ export class SirenAudioEngine {
   }
 }
 
-export const sirenAudio = new SirenAudioEngine();
+// Global Singleton for low-latency responsiveness
+let sirenInstance: SirenAudioEngine | null = null;
+
+export function getSirenEngine(): SirenAudioEngine {
+  if (!sirenInstance) {
+    sirenInstance = new SirenAudioEngine();
+  }
+  return sirenInstance;
+}
+
+export const sirenAudio = getSirenEngine();

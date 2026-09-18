@@ -130,26 +130,16 @@ export function renderGlassCovering(
       const isCylindrical = sType === 'cylindrical_beacon' || sType === 'teardrop_beacon' || sType === 'dual_beacon_bridge';
 
       if (style === 'fresnel_prism') {
-        const bandCount = 5;
+        // Horizontal stepped refraction bands (without artificial surface rings)
+        const bandCount = 6;
         const bandH = barH / bandCount;
         for (let b = 0; b < bandCount; b++) {
           const by = domeY + b * bandH;
-          ctx.fillStyle = `rgba(255, 255, 255, ${0.1 * dome.fluting.intensity})`;
-          ctx.fillRect(domeX, by, domeW, 1.4);
-          ctx.fillStyle = `rgba(0, 0, 0, ${0.14 * dome.fluting.intensity})`;
-          ctx.fillRect(domeX, by + bandH - 1.4, domeW, 1.4);
+          ctx.fillStyle = `rgba(255, 255, 255, ${0.08 * dome.fluting.intensity})`;
+          ctx.fillRect(domeX, by, domeW, 1.2);
+          ctx.fillStyle = `rgba(0, 0, 0, ${0.1 * dome.fluting.intensity})`;
+          ctx.fillRect(domeX, by + bandH - 1.2, domeW, 1.2);
         }
-
-        domeFlares.forEach((f) => {
-          const ringCount = 3;
-          for (let r = 1; r <= ringCount; r++) {
-            ctx.strokeStyle = `rgba(255, 255, 255, ${0.18 * dome.fluting.intensity * f.internalIntensity})`;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.arc(f.x, f.y, r * 14, 0, Math.PI * 2);
-            ctx.stroke();
-          }
-        });
       } else if (style === 'diamond_optic') {
         const diagSpacing = Math.max(6, 110 / dome.fluting.density);
         ctx.save();
@@ -255,17 +245,9 @@ export function renderGlassCovering(
         const activeScratchGlow = scratchLight * (0.35 + cloud * 0.75) * scratches * 2.4 * settings.refractionStrength;
 
         ctx.save();
-        if (isSwirl) {
-          const radius = 8 + rng() * 18;
-          const startArc = rng() * Math.PI * 2;
-          const arcSpan = 0.4 + rng() * 0.9;
-          ctx.beginPath();
-          ctx.arc(sx, sy, radius, startArc, startArc + arcSpan);
-        } else {
-          ctx.beginPath();
-          ctx.moveTo(sx, sy);
-          ctx.lineTo(ex, ey);
-        }
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(ex, ey);
 
         ctx.strokeStyle = `rgba(255, 255, 255, ${baseScratchAlpha})`;
         ctx.lineWidth = 0.7;

@@ -5,7 +5,8 @@ import {
   LightbarRenderer,
   SimulationState,
   createInitialSimulationState,
-} from '../utils/lightbarRenderer';
+  LightbarGeometry,
+} from '../renderer';
 import { lightbarAudio } from '../utils/audioEngine';
 
 interface SimulatorCanvasProps {
@@ -175,13 +176,30 @@ export const SimulatorCanvas: React.FC<SimulatorCanvasProps> = ({
       const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
       const clickY = (e.clientY - rect.top) * (canvas.height / rect.height);
 
-      const { barX, barY, barW, barH } = LightbarRenderer.getStructureBounds(config, canvas.width, canvas.height);
+      const { barX, barY, barW, barH } = LightbarGeometry.getStructureBounds(config, canvas.width, canvas.height);
+      const isTopDown = settings.viewAngle === 'top_down';
+      const isBeacon = config.structure.type === 'cylindrical_beacon' || config.structure.type === 'teardrop_beacon';
+      const isMiniBar = config.structure.type === 'mini_bar';
+      const isVBar = config.structure.type === 'v_bar';
+      const barDepth = isBeacon ? Math.min(barW, 180) : isMiniBar ? 85 : 120;
+      const topDownBarY = canvas.height * 0.44 - barDepth / 2;
+      const vFactor = (config.structure.vAngleDeg || 24) / 24;
 
       // Find nearest element within click radius
       let closestElem = config.elements[0];
       let minDistance = 99999;
       config.elements.forEach((elem) => {
-        const { x, y } = LightbarRenderer.getElementPosition(elem, config, barX, barY, barW, barH);
+        let x: number;
+        let y: number;
+        if (isTopDown) {
+          x = barX + elem.xNorm * barW;
+          const vOffsetY = isVBar ? (1 - 2 * Math.abs(elem.xNorm - 0.5)) * barDepth * 0.45 * vFactor : 0;
+          y = topDownBarY + barDepth / 2 + elem.yNorm * (barDepth * 0.35) + vOffsetY;
+        } else {
+          const pos = LightbarGeometry.getElementPosition(elem, config, barX, barY, barW, barH);
+          x = pos.x;
+          y = pos.y;
+        }
         const dist = Math.hypot(clickX - x, clickY - y);
         if (dist < minDistance) {
           minDistance = dist;

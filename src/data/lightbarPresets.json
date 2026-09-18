@@ -21,11 +21,11 @@
       },
       "domes": [
         {
-          "id": "dome_left_red",
-          "name": "Left Dome (Ruby Red)",
-          "startX": 0.0,
+          "id": "dome_left_blue",
+          "name": "Left Dome (Cobalt Blue)",
+          "startX": 0,
           "endX": 0.38,
-          "color": "#ef4444",
+          "color": "#2563eb",
           "opacity": 0.88,
           "cloudiness": 0.28,
           "fluting": {
@@ -50,20 +50,20 @@
           "fluting": {
             "style": "smooth_optic",
             "density": 0,
-            "intensity": 0.0
+            "intensity": 0
           },
           "wear": {
             "scratches": 0.1,
-            "yellowing": 0.0,
+            "yellowing": 0,
             "dirtHaze": 0.15
           }
         },
         {
-          "id": "dome_right_blue",
-          "name": "Right Dome (Cobalt Blue)",
+          "id": "dome_right_red",
+          "name": "Right Dome (Ruby Red)",
           "startX": 0.62,
-          "endX": 1.0,
-          "color": "#2563eb",
+          "endX": 1,
+          "color": "#ef4444",
           "opacity": 0.88,
           "cloudiness": 0.25,
           "fluting": {
@@ -84,7 +84,7 @@
           "name": "Left Outer Rotator",
           "type": "rotating_halogen",
           "xNorm": 0.12,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.4,
           "wear": {
@@ -110,7 +110,7 @@
           "name": "Left Inner Rotator",
           "type": "rotating_halogen",
           "xNorm": 0.28,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.3,
           "wear": {
@@ -136,7 +136,7 @@
           "name": "Right Inner Rotator",
           "type": "rotating_halogen",
           "xNorm": 0.72,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.3,
           "wear": {
@@ -162,7 +162,7 @@
           "name": "Right Outer Rotator",
           "type": "rotating_halogen",
           "xNorm": 0.88,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.4,
           "wear": {
@@ -201,10 +201,10 @@
       "domes": [
         {
           "id": "aero_l",
-          "name": "Left Aerodynamic Wing",
-          "startX": 0.0,
+          "name": "Left Aerodynamic Wing (Cobalt Blue)",
+          "startX": 0,
           "endX": 0.5,
-          "color": "#dc2626",
+          "color": "#1d4ed8",
           "opacity": 0.82,
           "cloudiness": 0.18,
           "fluting": {
@@ -220,10 +220,10 @@
         },
         {
           "id": "aero_r",
-          "name": "Right Aerodynamic Wing",
+          "name": "Right Aerodynamic Wing (Ruby Red)",
           "startX": 0.5,
-          "endX": 1.0,
-          "color": "#1d4ed8",
+          "endX": 1,
+          "color": "#dc2626",
           "opacity": 0.82,
           "cloudiness": 0.18,
           "fluting": {
@@ -244,10 +244,14 @@
           "name": "Rotator 1 (Left End)",
           "type": "rotating_halogen",
           "xNorm": 0.08,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.25,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.12, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.12,
+            "jitter": 0.01
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -265,11 +269,15 @@
           "id": "aero_2",
           "name": "Rotator 2",
           "type": "rotating_halogen",
-          "xNorm": 0.20,
-          "yNorm": 0.0,
+          "xNorm": 0.2,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.25,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.12, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.12,
+            "jitter": 0.01
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -288,10 +296,14 @@
           "name": "Rotator 3",
           "type": "rotating_halogen",
           "xNorm": 0.32,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.25,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.12, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.12,
+            "jitter": 0.01
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -310,10 +322,14 @@
           "name": "Rotator 4 (Center Left)",
           "type": "rotating_halogen",
           "xNorm": 0.44,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.25,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.12, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.12,
+            "jitter": 0.01
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -332,10 +348,14 @@
           "name": "Rotator 5 (Center Right)",
           "type": "rotating_halogen",
           "xNorm": 0.56,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.25,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.12, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.12,
+            "jitter": 0.01
+          },
           "syncGroup": "B",
           "enabled": true,
           "rotator": {
@@ -354,10 +374,14 @@
           "name": "Rotator 6",
           "type": "rotating_halogen",
           "xNorm": 0.68,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.25,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.12, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.12,
+            "jitter": 0.01
+          },
           "syncGroup": "B",
           "enabled": true,
           "rotator": {
@@ -375,11 +399,15 @@
           "id": "aero_7",
           "name": "Rotator 7",
           "type": "rotating_halogen",
-          "xNorm": 0.80,
-          "yNorm": 0.0,
+          "xNorm": 0.8,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.25,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.12, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.12,
+            "jitter": 0.01
+          },
           "syncGroup": "B",
           "enabled": true,
           "rotator": {
@@ -398,10 +426,14 @@
           "name": "Rotator 8 (Right End)",
           "type": "rotating_halogen",
           "xNorm": 0.92,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.25,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.12, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.12,
+            "jitter": 0.01
+          },
           "syncGroup": "B",
           "enabled": true,
           "rotator": {
@@ -434,7 +466,7 @@
         {
           "id": "edge_lens_l",
           "name": "Left Strobe Bay",
-          "startX": 0.0,
+          "startX": 0,
           "endX": 0.45,
           "color": "#e0f2fe",
           "opacity": 0.35,
@@ -457,15 +489,15 @@
           "endX": 0.55,
           "color": "#1f2937",
           "opacity": 0.95,
-          "cloudiness": 0.0,
+          "cloudiness": 0,
           "fluting": {
             "style": "smooth_optic",
             "density": 0,
-            "intensity": 0.0
+            "intensity": 0
           },
           "wear": {
             "scratches": 0.05,
-            "yellowing": 0.0,
+            "yellowing": 0,
             "dirtHaze": 0.1
           }
         },
@@ -473,7 +505,7 @@
           "id": "edge_lens_r",
           "name": "Right Strobe Bay",
           "startX": 0.55,
-          "endX": 1.0,
+          "endX": 1,
           "color": "#e0f2fe",
           "opacity": 0.35,
           "cloudiness": 0.15,
@@ -492,13 +524,17 @@
       "elements": [
         {
           "id": "strobe_l_out",
-          "name": "Left Corner Xenon Strobe",
+          "name": "Left Corner Xenon Strobe (Blue)",
           "type": "xenon_strobe",
           "xNorm": 0.07,
-          "yNorm": 0.0,
-          "subglassColor": "#dc2626",
+          "yNorm": 0,
+          "subglassColor": "#2563eb",
           "brightness": 2.2,
-          "wear": { "fadeWear": 0.08, "reflectorTarnish": 0.1, "jitter": 0.03 },
+          "wear": {
+            "fadeWear": 0.08,
+            "reflectorTarnish": 0.1,
+            "jitter": 0.03
+          },
           "syncGroup": "A",
           "enabled": true,
           "strobe": {
@@ -510,13 +546,17 @@
         },
         {
           "id": "hal_l_in",
-          "name": "Left Inboard Halogen Flasher",
+          "name": "Left Inboard Halogen Flasher (Blue)",
           "type": "static_halogen",
           "xNorm": 0.22,
-          "yNorm": 0.0,
-          "subglassColor": "#ef4444",
+          "yNorm": 0,
+          "subglassColor": "#2563eb",
           "brightness": 1.35,
-          "wear": { "fadeWear": 0.15, "reflectorTarnish": 0.15, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.15,
+            "reflectorTarnish": 0.15,
+            "jitter": 0.01
+          },
           "syncGroup": "A",
           "enabled": true,
           "halogen": {
@@ -531,10 +571,14 @@
           "name": "Left Alley Halogen",
           "type": "static_halogen",
           "xNorm": 0.37,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.5,
-          "wear": { "fadeWear": 0.05, "reflectorTarnish": 0.08, "jitter": 0.0 },
+          "wear": {
+            "fadeWear": 0.05,
+            "reflectorTarnish": 0.08,
+            "jitter": 0
+          },
           "syncGroup": "STEADY",
           "enabled": true,
           "halogen": {
@@ -549,10 +593,14 @@
           "name": "Right Alley Halogen",
           "type": "static_halogen",
           "xNorm": 0.63,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.5,
-          "wear": { "fadeWear": 0.05, "reflectorTarnish": 0.08, "jitter": 0.0 },
+          "wear": {
+            "fadeWear": 0.05,
+            "reflectorTarnish": 0.08,
+            "jitter": 0
+          },
           "syncGroup": "STEADY",
           "enabled": true,
           "halogen": {
@@ -564,13 +612,17 @@
         },
         {
           "id": "hal_r_in",
-          "name": "Right Inboard Halogen Flasher",
+          "name": "Right Inboard Halogen Flasher (Red)",
           "type": "static_halogen",
           "xNorm": 0.78,
-          "yNorm": 0.0,
-          "subglassColor": "#2563eb",
+          "yNorm": 0,
+          "subglassColor": "#ef4444",
           "brightness": 1.35,
-          "wear": { "fadeWear": 0.15, "reflectorTarnish": 0.15, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.15,
+            "reflectorTarnish": 0.15,
+            "jitter": 0.01
+          },
           "syncGroup": "B",
           "enabled": true,
           "halogen": {
@@ -582,13 +634,17 @@
         },
         {
           "id": "strobe_r_out",
-          "name": "Right Corner Xenon Strobe",
+          "name": "Right Corner Xenon Strobe (Red)",
           "type": "xenon_strobe",
           "xNorm": 0.93,
-          "yNorm": 0.0,
-          "subglassColor": "#2563eb",
+          "yNorm": 0,
+          "subglassColor": "#dc2626",
           "brightness": 2.2,
-          "wear": { "fadeWear": 0.08, "reflectorTarnish": 0.1, "jitter": 0.03 },
+          "wear": {
+            "fadeWear": 0.08,
+            "reflectorTarnish": 0.1,
+            "jitter": 0.03
+          },
           "syncGroup": "B",
           "enabled": true,
           "strobe": {
@@ -616,10 +672,10 @@
       "domes": [
         {
           "id": "v_pod_1",
-          "name": "Pod 1 (Left Corner)",
-          "startX": 0.0,
+          "name": "Pod 1 (Left Corner - Blue)",
+          "startX": 0,
           "endX": 0.18,
-          "color": "#dc2626",
+          "color": "#2563eb",
           "opacity": 0.85,
           "cloudiness": 0.22,
           "fluting": {
@@ -627,14 +683,18 @@
             "density": 25,
             "intensity": 0.8
           },
-          "wear": { "scratches": 0.2, "yellowing": 0.05, "dirtHaze": 0.15 }
+          "wear": {
+            "scratches": 0.2,
+            "yellowing": 0.05,
+            "dirtHaze": 0.15
+          }
         },
         {
           "id": "v_pod_2",
-          "name": "Pod 2 (Left Angle)",
+          "name": "Pod 2 (Left Angle - Blue)",
           "startX": 0.18,
           "endX": 0.36,
-          "color": "#dc2626",
+          "color": "#2563eb",
           "opacity": 0.85,
           "cloudiness": 0.22,
           "fluting": {
@@ -642,11 +702,15 @@
             "density": 25,
             "intensity": 0.8
           },
-          "wear": { "scratches": 0.2, "yellowing": 0.05, "dirtHaze": 0.15 }
+          "wear": {
+            "scratches": 0.2,
+            "yellowing": 0.05,
+            "dirtHaze": 0.15
+          }
         },
         {
           "id": "v_pod_3",
-          "name": "Pod 3 (Apex V-Center)",
+          "name": "Pod 3 (Apex V-Center - Amber)",
           "startX": 0.36,
           "endX": 0.64,
           "color": "#f59e0b",
@@ -657,14 +721,18 @@
             "density": 25,
             "intensity": 0.85
           },
-          "wear": { "scratches": 0.15, "yellowing": 0.05, "dirtHaze": 0.15 }
+          "wear": {
+            "scratches": 0.15,
+            "yellowing": 0.05,
+            "dirtHaze": 0.15
+          }
         },
         {
           "id": "v_pod_4",
-          "name": "Pod 4 (Right Angle)",
+          "name": "Pod 4 (Right Angle - Red)",
           "startX": 0.64,
           "endX": 0.82,
-          "color": "#2563eb",
+          "color": "#dc2626",
           "opacity": 0.85,
           "cloudiness": 0.22,
           "fluting": {
@@ -672,14 +740,18 @@
             "density": 25,
             "intensity": 0.8
           },
-          "wear": { "scratches": 0.2, "yellowing": 0.05, "dirtHaze": 0.15 }
+          "wear": {
+            "scratches": 0.2,
+            "yellowing": 0.05,
+            "dirtHaze": 0.15
+          }
         },
         {
           "id": "v_pod_5",
-          "name": "Pod 5 (Right Corner)",
+          "name": "Pod 5 (Right Corner - Red)",
           "startX": 0.82,
-          "endX": 1.0,
-          "color": "#2563eb",
+          "endX": 1,
+          "color": "#dc2626",
           "opacity": 0.85,
           "cloudiness": 0.22,
           "fluting": {
@@ -687,7 +759,11 @@
             "density": 25,
             "intensity": 0.8
           },
-          "wear": { "scratches": 0.2, "yellowing": 0.05, "dirtHaze": 0.15 }
+          "wear": {
+            "scratches": 0.2,
+            "yellowing": 0.05,
+            "dirtHaze": 0.15
+          }
         }
       ],
       "elements": [
@@ -699,7 +775,11 @@
           "yNorm": -0.08,
           "subglassColor": null,
           "brightness": 1.4,
-          "wear": { "fadeWear": 0.12, "reflectorTarnish": 0.15, "jitter": 0.02 },
+          "wear": {
+            "fadeWear": 0.12,
+            "reflectorTarnish": 0.15,
+            "jitter": 0.02
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -721,7 +801,11 @@
           "yNorm": -0.02,
           "subglassColor": null,
           "brightness": 1.35,
-          "wear": { "fadeWear": 0.12, "reflectorTarnish": 0.15, "jitter": 0.02 },
+          "wear": {
+            "fadeWear": 0.12,
+            "reflectorTarnish": 0.15,
+            "jitter": 0.02
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -739,11 +823,15 @@
           "id": "v_rot_3",
           "name": "Center Apex Rotator",
           "type": "rotating_halogen",
-          "xNorm": 0.50,
+          "xNorm": 0.5,
           "yNorm": 0.12,
           "subglassColor": null,
           "brightness": 1.5,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.1, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.1,
+            "jitter": 0.01
+          },
           "syncGroup": "C",
           "enabled": true,
           "rotator": {
@@ -765,7 +853,11 @@
           "yNorm": -0.02,
           "subglassColor": null,
           "brightness": 1.35,
-          "wear": { "fadeWear": 0.12, "reflectorTarnish": 0.15, "jitter": 0.02 },
+          "wear": {
+            "fadeWear": 0.12,
+            "reflectorTarnish": 0.15,
+            "jitter": 0.02
+          },
           "syncGroup": "B",
           "enabled": true,
           "rotator": {
@@ -787,7 +879,11 @@
           "yNorm": -0.08,
           "subglassColor": null,
           "brightness": 1.4,
-          "wear": { "fadeWear": 0.12, "reflectorTarnish": 0.15, "jitter": 0.02 },
+          "wear": {
+            "fadeWear": 0.12,
+            "reflectorTarnish": 0.15,
+            "jitter": 0.02
+          },
           "syncGroup": "B",
           "enabled": true,
           "rotator": {
@@ -819,35 +915,9 @@
       "domes": [
         {
           "id": "chp_left",
-          "name": "Left Red Dome",
-          "startX": 0.0,
-          "endX": 0.40,
-          "color": "#dc2626",
-          "opacity": 0.9,
-          "cloudiness": 0.32,
-          "fluting": {
-            "style": "vertical_ribs",
-            "density": 24,
-            "intensity": 0.9
-          },
-          "wear": { "scratches": 0.25, "yellowing": 0.1, "dirtHaze": 0.18 }
-        },
-        {
-          "id": "chp_mid",
-          "name": "Chrome Center Housing",
-          "startX": 0.40,
-          "endX": 0.60,
-          "color": "#9ca3af",
-          "opacity": 0.1,
-          "cloudiness": 0.0,
-          "fluting": { "style": "smooth_optic", "density": 0, "intensity": 0.0 },
-          "wear": { "scratches": 0.1, "yellowing": 0.0, "dirtHaze": 0.1 }
-        },
-        {
-          "id": "chp_right",
-          "name": "Right Blue Dome",
-          "startX": 0.60,
-          "endX": 1.0,
+          "name": "Left Blue Dome",
+          "startX": 0,
+          "endX": 0.4,
           "color": "#2563eb",
           "opacity": 0.9,
           "cloudiness": 0.32,
@@ -856,19 +926,65 @@
             "density": 24,
             "intensity": 0.9
           },
-          "wear": { "scratches": 0.25, "yellowing": 0.1, "dirtHaze": 0.18 }
+          "wear": {
+            "scratches": 0.25,
+            "yellowing": 0.1,
+            "dirtHaze": 0.18
+          }
+        },
+        {
+          "id": "chp_mid",
+          "name": "Chrome Center Housing",
+          "startX": 0.4,
+          "endX": 0.6,
+          "color": "#9ca3af",
+          "opacity": 0.1,
+          "cloudiness": 0,
+          "fluting": {
+            "style": "smooth_optic",
+            "density": 0,
+            "intensity": 0
+          },
+          "wear": {
+            "scratches": 0.1,
+            "yellowing": 0,
+            "dirtHaze": 0.1
+          }
+        },
+        {
+          "id": "chp_right",
+          "name": "Right Red Dome",
+          "startX": 0.6,
+          "endX": 1,
+          "color": "#dc2626",
+          "opacity": 0.9,
+          "cloudiness": 0.32,
+          "fluting": {
+            "style": "vertical_ribs",
+            "density": 24,
+            "intensity": 0.9
+          },
+          "wear": {
+            "scratches": 0.25,
+            "yellowing": 0.1,
+            "dirtHaze": 0.18
+          }
         }
       ],
       "elements": [
         {
           "id": "chp_steady_red",
-          "name": "Cal Steady Burn Red (Forward)",
+          "name": "Cal Steady Burn Red (Driver Side Forward)",
           "type": "static_halogen",
-          "xNorm": 0.14,
-          "yNorm": 0.0,
+          "xNorm": 0.86,
+          "yNorm": 0,
           "subglassColor": "#b91c1c",
           "brightness": 1.8,
-          "wear": { "fadeWear": 0.22, "reflectorTarnish": 0.1, "jitter": 0.0 },
+          "wear": {
+            "fadeWear": 0.22,
+            "reflectorTarnish": 0.1,
+            "jitter": 0
+          },
           "syncGroup": "STEADY",
           "enabled": true,
           "halogen": {
@@ -883,10 +999,14 @@
           "name": "Left Auxiliary Rotator",
           "type": "rotating_halogen",
           "xNorm": 0.32,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.35,
-          "wear": { "fadeWear": 0.15, "reflectorTarnish": 0.15, "jitter": 0.02 },
+          "wear": {
+            "fadeWear": 0.15,
+            "reflectorTarnish": 0.15,
+            "jitter": 0.02
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -904,11 +1024,15 @@
           "id": "chp_amber_flash",
           "name": "Rear Amber Flasher",
           "type": "static_halogen",
-          "xNorm": 0.68,
-          "yNorm": 0.0,
+          "xNorm": 0.14,
+          "yNorm": 0,
           "subglassColor": "#d97706",
           "brightness": 1.4,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.12, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.12,
+            "jitter": 0.01
+          },
           "syncGroup": "B",
           "enabled": true,
           "halogen": {
@@ -922,11 +1046,15 @@
           "id": "chp_rot_r",
           "name": "Right High-Speed Rotator",
           "type": "rotating_halogen",
-          "xNorm": 0.86,
-          "yNorm": 0.0,
+          "xNorm": 0.68,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.45,
-          "wear": { "fadeWear": 0.15, "reflectorTarnish": 0.15, "jitter": 0.02 },
+          "wear": {
+            "fadeWear": 0.15,
+            "reflectorTarnish": 0.15,
+            "jitter": 0.02
+          },
           "syncGroup": "B",
           "enabled": true,
           "rotator": {
@@ -959,7 +1087,7 @@
         {
           "id": "fire_dome_1",
           "name": "Left Amber/Red Lens",
-          "startX": 0.0,
+          "startX": 0,
           "endX": 0.48,
           "color": "#dc2626",
           "opacity": 0.88,
@@ -969,7 +1097,11 @@
             "density": 28,
             "intensity": 0.92
           },
-          "wear": { "scratches": 0.3, "yellowing": 0.12, "dirtHaze": 0.25 }
+          "wear": {
+            "scratches": 0.3,
+            "yellowing": 0.12,
+            "dirtHaze": 0.25
+          }
         },
         {
           "id": "fire_dome_mid",
@@ -979,14 +1111,22 @@
           "color": "#f59e0b",
           "opacity": 0.85,
           "cloudiness": 0.3,
-          "fluting": { "style": "vertical_ribs", "density": 20, "intensity": 0.8 },
-          "wear": { "scratches": 0.2, "yellowing": 0.1, "dirtHaze": 0.2 }
+          "fluting": {
+            "style": "vertical_ribs",
+            "density": 20,
+            "intensity": 0.8
+          },
+          "wear": {
+            "scratches": 0.2,
+            "yellowing": 0.1,
+            "dirtHaze": 0.2
+          }
         },
         {
           "id": "fire_dome_2",
           "name": "Right Ruby Lens",
           "startX": 0.52,
-          "endX": 1.0,
+          "endX": 1,
           "color": "#b91c1c",
           "opacity": 0.88,
           "cloudiness": 0.38,
@@ -995,7 +1135,11 @@
             "density": 28,
             "intensity": 0.92
           },
-          "wear": { "scratches": 0.3, "yellowing": 0.12, "dirtHaze": 0.25 }
+          "wear": {
+            "scratches": 0.3,
+            "yellowing": 0.12,
+            "dirtHaze": 0.25
+          }
         }
       ],
       "elements": [
@@ -1004,10 +1148,14 @@
           "name": "Left Corner 20-Joule Strobe",
           "type": "xenon_strobe",
           "xNorm": 0.06,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 2.5,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.12, "jitter": 0.04 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.12,
+            "jitter": 0.04
+          },
           "syncGroup": "A",
           "enabled": true,
           "strobe": {
@@ -1022,10 +1170,14 @@
           "name": "Left Inboard Rotator",
           "type": "rotating_halogen",
           "xNorm": 0.25,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.4,
-          "wear": { "fadeWear": 0.16, "reflectorTarnish": 0.18, "jitter": 0.02 },
+          "wear": {
+            "fadeWear": 0.16,
+            "reflectorTarnish": 0.18,
+            "jitter": 0.02
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -1043,11 +1195,15 @@
           "id": "fire_center_amber",
           "name": "Center Amber Strobe",
           "type": "xenon_strobe",
-          "xNorm": 0.50,
-          "yNorm": 0.0,
+          "xNorm": 0.5,
+          "yNorm": 0,
           "subglassColor": "#f59e0b",
-          "brightness": 2.0,
-          "wear": { "fadeWear": 0.05, "reflectorTarnish": 0.08, "jitter": 0.02 },
+          "brightness": 2,
+          "wear": {
+            "fadeWear": 0.05,
+            "reflectorTarnish": 0.08,
+            "jitter": 0.02
+          },
           "syncGroup": "C",
           "enabled": true,
           "strobe": {
@@ -1062,10 +1218,14 @@
           "name": "Right Inboard Rotator",
           "type": "rotating_halogen",
           "xNorm": 0.75,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.4,
-          "wear": { "fadeWear": 0.16, "reflectorTarnish": 0.18, "jitter": 0.02 },
+          "wear": {
+            "fadeWear": 0.16,
+            "reflectorTarnish": 0.18,
+            "jitter": 0.02
+          },
           "syncGroup": "B",
           "enabled": true,
           "rotator": {
@@ -1084,10 +1244,14 @@
           "name": "Right Corner 20-Joule Strobe",
           "type": "xenon_strobe",
           "xNorm": 0.94,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 2.5,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.12, "jitter": 0.04 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.12,
+            "jitter": 0.04
+          },
           "syncGroup": "B",
           "enabled": true,
           "strobe": {
@@ -1116,7 +1280,7 @@
         {
           "id": "led_dome_l",
           "name": "Clear Left Polycarbonate Lens",
-          "startX": 0.0,
+          "startX": 0,
           "endX": 0.46,
           "color": "#f8fafc",
           "opacity": 0.95,
@@ -1124,11 +1288,11 @@
           "fluting": {
             "style": "smooth_optic",
             "density": 0,
-            "intensity": 0.0
+            "intensity": 0
           },
           "wear": {
             "scratches": 0.02,
-            "yellowing": 0.0,
+            "yellowing": 0,
             "dirtHaze": 0.03
           }
         },
@@ -1143,11 +1307,11 @@
           "fluting": {
             "style": "smooth_optic",
             "density": 0,
-            "intensity": 0.0
+            "intensity": 0
           },
           "wear": {
             "scratches": 0.02,
-            "yellowing": 0.0,
+            "yellowing": 0,
             "dirtHaze": 0.03
           }
         },
@@ -1155,18 +1319,18 @@
           "id": "led_dome_r",
           "name": "Clear Right Polycarbonate Lens",
           "startX": 0.54,
-          "endX": 1.0,
+          "endX": 1,
           "color": "#f8fafc",
           "opacity": 0.95,
           "cloudiness": 0.02,
           "fluting": {
             "style": "smooth_optic",
             "density": 0,
-            "intensity": 0.0
+            "intensity": 0
           },
           "wear": {
             "scratches": 0.02,
-            "yellowing": 0.0,
+            "yellowing": 0,
             "dirtHaze": 0.03
           }
         }
@@ -1174,81 +1338,123 @@
       "elements": [
         {
           "id": "led_l_corner",
-          "name": "Left Corner TIR Super-LED",
+          "name": "Left Corner TIR Super-LED (Blue)",
           "type": "modern_led",
           "xNorm": 0.08,
-          "yNorm": 0.0,
-          "subglassColor": "#ef4444",
+          "yNorm": 0,
+          "subglassColor": "#2563eb",
           "brightness": 1.8,
-          "wear": { "fadeWear": 0.0, "reflectorTarnish": 0.0, "jitter": 0.0 },
+          "wear": {
+            "fadeWear": 0,
+            "reflectorTarnish": 0,
+            "jitter": 0
+          },
           "syncGroup": "A",
           "enabled": true,
-          "led": { "diodeCount": 6, "opticLens": "tir" }
+          "led": {
+            "diodeCount": 6,
+            "opticLens": "tir"
+          }
         },
         {
           "id": "led_l_linear",
-          "name": "Left Inboard Linear Super-LED",
+          "name": "Left Inboard Linear Super-LED (Blue)",
           "type": "modern_led",
           "xNorm": 0.26,
-          "yNorm": 0.0,
-          "subglassColor": "#ef4444",
+          "yNorm": 0,
+          "subglassColor": "#2563eb",
           "brightness": 1.6,
-          "wear": { "fadeWear": 0.0, "reflectorTarnish": 0.0, "jitter": 0.0 },
+          "wear": {
+            "fadeWear": 0,
+            "reflectorTarnish": 0,
+            "jitter": 0
+          },
           "syncGroup": "A",
           "enabled": true,
-          "led": { "diodeCount": 12, "opticLens": "linear" }
+          "led": {
+            "diodeCount": 12,
+            "opticLens": "linear"
+          }
         },
         {
           "id": "led_takedown_l",
           "name": "Center-Left LED Takedown",
           "type": "modern_led",
-          "xNorm": 0.40,
-          "yNorm": 0.0,
+          "xNorm": 0.4,
+          "yNorm": 0,
           "subglassColor": "#ffffff",
-          "brightness": 2.0,
-          "wear": { "fadeWear": 0.0, "reflectorTarnish": 0.0, "jitter": 0.0 },
+          "brightness": 2,
+          "wear": {
+            "fadeWear": 0,
+            "reflectorTarnish": 0,
+            "jitter": 0
+          },
           "syncGroup": "STEADY",
           "enabled": true,
-          "led": { "diodeCount": 6, "opticLens": "tir" }
+          "led": {
+            "diodeCount": 6,
+            "opticLens": "tir"
+          }
         },
         {
           "id": "led_takedown_r",
           "name": "Center-Right LED Takedown",
           "type": "modern_led",
-          "xNorm": 0.60,
-          "yNorm": 0.0,
+          "xNorm": 0.6,
+          "yNorm": 0,
           "subglassColor": "#ffffff",
-          "brightness": 2.0,
-          "wear": { "fadeWear": 0.0, "reflectorTarnish": 0.0, "jitter": 0.0 },
+          "brightness": 2,
+          "wear": {
+            "fadeWear": 0,
+            "reflectorTarnish": 0,
+            "jitter": 0
+          },
           "syncGroup": "STEADY",
           "enabled": true,
-          "led": { "diodeCount": 6, "opticLens": "tir" }
+          "led": {
+            "diodeCount": 6,
+            "opticLens": "tir"
+          }
         },
         {
           "id": "led_r_linear",
-          "name": "Right Inboard Linear Super-LED",
+          "name": "Right Inboard Linear Super-LED (Red)",
           "type": "modern_led",
           "xNorm": 0.74,
-          "yNorm": 0.0,
-          "subglassColor": "#2563eb",
+          "yNorm": 0,
+          "subglassColor": "#ef4444",
           "brightness": 1.6,
-          "wear": { "fadeWear": 0.0, "reflectorTarnish": 0.0, "jitter": 0.0 },
+          "wear": {
+            "fadeWear": 0,
+            "reflectorTarnish": 0,
+            "jitter": 0
+          },
           "syncGroup": "B",
           "enabled": true,
-          "led": { "diodeCount": 12, "opticLens": "linear" }
+          "led": {
+            "diodeCount": 12,
+            "opticLens": "linear"
+          }
         },
         {
           "id": "led_r_corner",
-          "name": "Right Corner TIR Super-LED",
+          "name": "Right Corner TIR Super-LED (Red)",
           "type": "modern_led",
           "xNorm": 0.92,
-          "yNorm": 0.0,
-          "subglassColor": "#2563eb",
+          "yNorm": 0,
+          "subglassColor": "#ef4444",
           "brightness": 1.8,
-          "wear": { "fadeWear": 0.0, "reflectorTarnish": 0.0, "jitter": 0.0 },
+          "wear": {
+            "fadeWear": 0,
+            "reflectorTarnish": 0,
+            "jitter": 0
+          },
           "syncGroup": "B",
           "enabled": true,
-          "led": { "diodeCount": 6, "opticLens": "tir" }
+          "led": {
+            "diodeCount": 6,
+            "opticLens": "tir"
+          }
         }
       ]
     },
@@ -1269,7 +1475,7 @@
         {
           "id": "dot_dome_l",
           "name": "Left Amber Fluted Dome",
-          "startX": 0.0,
+          "startX": 0,
           "endX": 0.44,
           "color": "#f59e0b",
           "opacity": 0.88,
@@ -1296,11 +1502,11 @@
           "fluting": {
             "style": "smooth_optic",
             "density": 0,
-            "intensity": 0.0
+            "intensity": 0
           },
           "wear": {
             "scratches": 0.1,
-            "yellowing": 0.0,
+            "yellowing": 0,
             "dirtHaze": 0.15
           }
         },
@@ -1308,7 +1514,7 @@
           "id": "dot_dome_r",
           "name": "Right Amber Fluted Dome",
           "startX": 0.56,
-          "endX": 1.0,
+          "endX": 1,
           "color": "#f59e0b",
           "opacity": 0.88,
           "cloudiness": 0.18,
@@ -1329,11 +1535,15 @@
           "id": "dot_hal_l",
           "name": "Left Outer Halogen Flasher",
           "type": "static_halogen",
-          "xNorm": 0.10,
-          "yNorm": 0.0,
+          "xNorm": 0.1,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.4,
-          "wear": { "fadeWear": 0.15, "reflectorTarnish": 0.15, "jitter": 0.02 },
+          "wear": {
+            "fadeWear": 0.15,
+            "reflectorTarnish": 0.15,
+            "jitter": 0.02
+          },
           "syncGroup": "A",
           "enabled": true,
           "halogen": {
@@ -1348,10 +1558,14 @@
           "name": "Left Inboard High-Speed Rotator",
           "type": "rotating_halogen",
           "xNorm": 0.28,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.5,
-          "wear": { "fadeWear": 0.12, "reflectorTarnish": 0.12, "jitter": 0.02 },
+          "wear": {
+            "fadeWear": 0.12,
+            "reflectorTarnish": 0.12,
+            "jitter": 0.02
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -1370,10 +1584,14 @@
           "name": "Right Inboard High-Speed Rotator",
           "type": "rotating_halogen",
           "xNorm": 0.72,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.5,
-          "wear": { "fadeWear": 0.12, "reflectorTarnish": 0.12, "jitter": 0.02 },
+          "wear": {
+            "fadeWear": 0.12,
+            "reflectorTarnish": 0.12,
+            "jitter": 0.02
+          },
           "syncGroup": "B",
           "enabled": true,
           "rotator": {
@@ -1391,11 +1609,15 @@
           "id": "dot_hal_r",
           "name": "Right Outer Halogen Flasher",
           "type": "static_halogen",
-          "xNorm": 0.90,
-          "yNorm": 0.0,
+          "xNorm": 0.9,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.4,
-          "wear": { "fadeWear": 0.15, "reflectorTarnish": 0.15, "jitter": 0.02 },
+          "wear": {
+            "fadeWear": 0.15,
+            "reflectorTarnish": 0.15,
+            "jitter": 0.02
+          },
           "syncGroup": "B",
           "enabled": true,
           "halogen": {
@@ -1424,10 +1646,10 @@
         {
           "id": "euro_dome_l",
           "name": "Left Deep Blue Lens",
-          "startX": 0.0,
-          "endX": 0.40,
+          "startX": 0,
+          "endX": 0.4,
           "color": "#1d4ed8",
-          "opacity": 0.90,
+          "opacity": 0.9,
           "cloudiness": 0.12,
           "fluting": {
             "style": "vertical_ribs",
@@ -1443,29 +1665,29 @@
         {
           "id": "euro_center_box",
           "name": "Center Acoustic Siren Grille",
-          "startX": 0.40,
-          "endX": 0.60,
+          "startX": 0.4,
+          "endX": 0.6,
           "color": "#f3f4f6",
           "opacity": 0.3,
           "cloudiness": 0.05,
           "fluting": {
             "style": "smooth_optic",
             "density": 0,
-            "intensity": 0.0
+            "intensity": 0
           },
           "wear": {
             "scratches": 0.08,
-            "yellowing": 0.0,
-            "dirtHaze": 0.10
+            "yellowing": 0,
+            "dirtHaze": 0.1
           }
         },
         {
           "id": "euro_dome_r",
           "name": "Right Deep Blue Lens",
-          "startX": 0.60,
-          "endX": 1.0,
+          "startX": 0.6,
+          "endX": 1,
           "color": "#1d4ed8",
-          "opacity": 0.90,
+          "opacity": 0.9,
           "cloudiness": 0.12,
           "fluting": {
             "style": "vertical_ribs",
@@ -1484,11 +1706,15 @@
           "id": "euro_rot_l",
           "name": "Left High-RPM Euro Rotator",
           "type": "rotating_halogen",
-          "xNorm": 0.20,
-          "yNorm": 0.0,
+          "xNorm": 0.2,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.6,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.1, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.1,
+            "jitter": 0.01
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -1506,11 +1732,15 @@
           "id": "euro_hal_center",
           "name": "Center Halogen Alley / Work Light",
           "type": "static_halogen",
-          "xNorm": 0.50,
-          "yNorm": 0.0,
+          "xNorm": 0.5,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.3,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.1, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.1,
+            "jitter": 0.01
+          },
           "syncGroup": "STEADY",
           "enabled": true,
           "halogen": {
@@ -1524,11 +1754,15 @@
           "id": "euro_rot_r",
           "name": "Right High-RPM Euro Rotator",
           "type": "rotating_halogen",
-          "xNorm": 0.80,
-          "yNorm": 0.0,
+          "xNorm": 0.8,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.6,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.1, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.1,
+            "jitter": 0.01
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -1561,8 +1795,8 @@
         {
           "id": "beacon_dome_red",
           "name": "Ruby Red Cylindrical Glass Dome",
-          "startX": 0.0,
-          "endX": 1.0,
+          "startX": 0,
+          "endX": 1,
           "color": "#dc2626",
           "opacity": 0.88,
           "cloudiness": 0.24,
@@ -1587,7 +1821,11 @@
           "yNorm": -0.06,
           "subglassColor": null,
           "brightness": 1.7,
-          "wear": { "fadeWear": 0.12, "reflectorTarnish": 0.15, "jitter": 0.015 },
+          "wear": {
+            "fadeWear": 0.12,
+            "reflectorTarnish": 0.15,
+            "jitter": 0.015
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -1609,7 +1847,11 @@
           "yNorm": -0.06,
           "subglassColor": null,
           "brightness": 1.7,
-          "wear": { "fadeWear": 0.14, "reflectorTarnish": 0.15, "jitter": 0.015 },
+          "wear": {
+            "fadeWear": 0.14,
+            "reflectorTarnish": 0.15,
+            "jitter": 0.015
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -1631,7 +1873,11 @@
           "yNorm": -0.06,
           "subglassColor": null,
           "brightness": 1.7,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.15, "jitter": 0.015 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.15,
+            "jitter": 0.015
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -1653,7 +1899,11 @@
           "yNorm": -0.06,
           "subglassColor": null,
           "brightness": 1.7,
-          "wear": { "fadeWear": 0.13, "reflectorTarnish": 0.15, "jitter": 0.015 },
+          "wear": {
+            "fadeWear": 0.13,
+            "reflectorTarnish": 0.15,
+            "jitter": 0.015
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -1686,8 +1936,8 @@
         {
           "id": "teardrop_dome_amber",
           "name": "Amber Aerodynamic Teardrop Lens",
-          "startX": 0.0,
-          "endX": 1.0,
+          "startX": 0,
+          "endX": 1,
           "color": "#f59e0b",
           "opacity": 0.85,
           "cloudiness": 0.2,
@@ -1712,7 +1962,11 @@
           "yNorm": -0.05,
           "subglassColor": null,
           "brightness": 1.85,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.1, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.1,
+            "jitter": 0.01
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -1790,7 +2044,11 @@
           "yNorm": -0.05,
           "subglassColor": null,
           "brightness": 1.8,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.12, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.12,
+            "jitter": 0.01
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -1812,7 +2070,11 @@
           "yNorm": -0.05,
           "subglassColor": null,
           "brightness": 1.8,
-          "wear": { "fadeWear": 0.1, "reflectorTarnish": 0.12, "jitter": 0.01 },
+          "wear": {
+            "fadeWear": 0.1,
+            "reflectorTarnish": 0.12,
+            "jitter": 0.01
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -1845,7 +2107,7 @@
         {
           "id": "mini_dome_left",
           "name": "Left Amber Lens",
-          "startX": 0.0,
+          "startX": 0,
           "endX": 0.5,
           "color": "#f59e0b",
           "opacity": 0.86,
@@ -1865,7 +2127,7 @@
           "id": "mini_dome_right",
           "name": "Right Amber Lens",
           "startX": 0.5,
-          "endX": 1.0,
+          "endX": 1,
           "color": "#f59e0b",
           "opacity": 0.86,
           "cloudiness": 0.18,
@@ -1887,10 +2149,14 @@
           "name": "Left High-Speed Rotator",
           "type": "rotating_halogen",
           "xNorm": 0.22,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.7,
-          "wear": { "fadeWear": 0.08, "reflectorTarnish": 0.08, "jitter": 0.008 },
+          "wear": {
+            "fadeWear": 0.08,
+            "reflectorTarnish": 0.08,
+            "jitter": 0.008
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
@@ -1909,10 +2175,14 @@
           "name": "Right High-Speed Rotator",
           "type": "rotating_halogen",
           "xNorm": 0.78,
-          "yNorm": 0.0,
+          "yNorm": 0,
           "subglassColor": null,
           "brightness": 1.7,
-          "wear": { "fadeWear": 0.08, "reflectorTarnish": 0.08, "jitter": 0.008 },
+          "wear": {
+            "fadeWear": 0.08,
+            "reflectorTarnish": 0.08,
+            "jitter": 0.008
+          },
           "syncGroup": "A",
           "enabled": true,
           "rotator": {
